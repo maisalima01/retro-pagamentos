@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Retro — Time de Pagamentos</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+  .board{padding:1.5rem;max-width:1400px;margin:0 auto}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+  .header-left .title{font-size:20px;font-weight:600;color:#1a1a1a}
+  .header-left .subtitle{font-size:13px;color:#888;margin-top:3px}
+  .actions{display:flex;gap:8px}
+  .btn{font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#333;cursor:pointer;transition:all 0.15s;font-weight:500}
+  .btn:hover{background:#f0f0ee;border-color:#ccc}
+  .btn-reveal{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .btn-reveal:hover{background:#333}
+  .columns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+  @media(max-width:900px){.columns{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:500px){.columns{grid-template-columns:1fr}}
+  .col{background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:340px;border:1px solid #e8e8e6}
+  .col-header{display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid #f0f0ee;margin-bottom:2px}
+  .col-icon{font-size:16px}
+  .col-title{font-size:12px;font-weight:600;color:#1a1a1a;line-height:1.3;flex:1}
+  .col-count{font-size:11px;color:#999;background:#f5f5f3;border-radius:20px;padding:2px 8px;border:1px solid #eee}
+  .card{background:#fafaf8;border:1px solid #e8e8e6;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;line-height:1.5}
+  .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .card-anon{font-size:11px;color:#bbb}
+  .like-btn{font-size:11px;color:#999;background:none;border:1px solid #e8e8e6;border-radius:20px;padding:2px 9px;cursor:pointer;transition:all 0.15s}
+  .like-btn:hover{background:#eef4ff;color:#3b7dd8;border-color:#b8d0f5}
+  .like-btn.liked{background:#eef4ff;color:#3b7dd8;border-color:#b8d0f5;font-weight:600}
+  .hidden-box{background:#f9f9f7;border:1px dashed #ddd;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#aaa;font-style:italic}
+  .add-area{margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:7px}
+  .add-input{font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid #e0e0de;background:#fafaf8;color:#1a1a1a;width:100%;resize:none;height:68px;font-family:inherit;transition:border 0.15s}
+  .add-input:focus{outline:none;border-color:#aaa;background:#fff}
+  .add-btn{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #e0e0de;background:#fafaf8;color:#666;cursor:pointer;transition:all 0.15s;text-align:left;font-family:inherit}
+  .add-btn:hover{background:#f0f0ee;color:#333;border-color:#ccc}
+  .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0}
+  .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s}
+  .mood-opt:hover{background:#f5f5f3}
+  .mood-opt.selected{border-color:#3b7dd8;background:#eef4ff}
+  .mood-emoji{font-size:20px}
+  .mood-label{font-size:9px;color:#999;text-align:center;line-height:1.2}
+  .mood-result{font-size:12px;color:#888;text-align:center;padding:4px 0;font-style:italic}
+  .col-pride .col-header{border-bottom-color:#fff3e0}
+  .col-good .col-header{border-bottom-color:#e8f5e9}
+  .col-bad .col-header{border-bottom-color:#fce4e4}
+  .col-action .col-header{border-bottom-color:#e3f2fd}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="header">
+    <div class="header-left">
+      <div class="title">Retro — Time de Pagamentos</div>
+      <div class="subtitle" id="subtitle">Cards anônimos ativados · adicione sem ver os outros</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">👁 Revelar cards</button>
+      <button class="btn" onclick="exportBoard()">↓ Exportar</button>
+    </div>
+  </div>
+  <div class="columns" id="board"></div>
+</div>
+
+<script>
+const COLS=[
+  {id:'mood',cls:'col-mood',icon:'🌡',title:'Como foi o sentimento da sprint?',type:'mood'},
+  {id:'pride',cls:'col-pride',icon:'🏆',title:'Mural do orgulho',type:'cards',ph:'O que o time pode se orgulhar?'},
+  {id:'good',cls:'col-good',icon:'✅',title:'O que deu bom?',type:'cards',ph:'O que repetimos na próxima sprint?'},
+  {id:'bad',cls:'col-bad',icon:'📌',title:'O que não deu tão bom?',type:'cards',ph:'O que podemos melhorar?'},
+  {id:'action',cls:'col-action',icon:'🚀',title:'Ação da retro',type:'cards',ph:'Responsável · o que faremos?'},
+];
+const MOODS=[
+  {e:'😔',l:'Difícil'},
+  {e:'😕',l:'Abaixo'},
+  {e:'😐',l:'Neutro'},
+  {e:'😊',l:'Foi bem'},
+  {e:'🤩',l:'Incrível!'},
+];
+let state={mood:null,revealed:false,cards:{mood:[],pride:[],good:[],bad:[],action:[]}};
+
+function cards(id){return state.cards[id]||[]}
+
+function addCard(col,text){
+  if(!text.trim())return;
+  state.cards[col]=[...cards(col),{id:Date.now(),text:text.trim(),likes:0,liked:false}];
+  render();
+}
+
+function like(col,id){
+  state.cards[col]=state.cards[col].map(c=>c.id===id?{...c,likes:c.liked?c.likes-1:c.likes+1,liked:!c.liked}:c);
+  render();
+}
+
+function toggleReveal(){
+  state.revealed=!state.revealed;
+  render();
+}
+
+function submitCard(col){
+  const el=document.getElementById('inp-'+col);
+  if(el){addCard(col,el.value);el.value='';}
+}
+
+function selectMood(i){state.mood=i;render();}
+
+function exportBoard(){
+  let out='RETROSPECTIVA — TIME DE PAGAMENTOS\n'+'='.repeat(38)+'\n\n';
+  COLS.forEach(col=>{
+    out+=col.icon+' '+col.title.toUpperCase()+'\n'+'-'.repeat(30)+'\n';
+    if(col.id==='mood'&&state.mood!==null)out+='Humor: '+MOODS[state.mood].e+' '+MOODS[state.mood].l+'\n';
+    cards(col.id).forEach((c,i)=>out+=(i+1)+'. '+c.text+(c.likes>0?' ('+c.likes+' votos)':'')+'\n');
+    out+='\n';
+  });
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(out);
+  a.download='retro-pagamentos.txt';
+  a.click();
+}
+
+function renderMoodCol(col){
+  const moodBtns=MOODS.map((m,i)=>`
+    <div class="mood-opt${state.mood===i?' selected':''}" onclick="selectMood(${i})">
+      <span class="mood-emoji">${m.e}</span>
+      <span class="mood-label">${m.l}</span>
+    </div>`).join('');
+  const result=state.mood!==null
+    ?`<div class="mood-result">${MOODS[state.mood].e} ${MOODS[state.mood].l}</div>`
+    :`<div class="mood-result">clique para votar</div>`;
+  const cs=cards('mood');
+  const cardsHtml=state.revealed
+    ?cs.map(c=>`<div class="card"><span>${escHtml(c.text)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${c.liked?' liked':''}" onclick="like('mood',${c.id})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`).join('')
+    :(cs.length>0?`<div class="hidden-box">💬 ${cs.length} comentário${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'');
+  return`
+    <div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
+    <div class="mood-grid">${moodBtns}</div>
+    ${result}
+    ${cardsHtml}
+    <div class="add-area">
+      <textarea class="add-input" id="inp-mood" placeholder="Comentário anônimo..." rows="2"></textarea>
+      <button class="add-btn" onclick="submitCard('mood')">+ Adicionar comentário</button>
+    </div>`;
+}
+
+function renderCardsCol(col){
+  const cs=cards(col.id);
+  const cardsHtml=state.revealed
+    ?cs.map(c=>`<div class="card"><span>${escHtml(c.text)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${c.liked?' liked':''}" onclick="like('${col.id}',${c.id})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`).join('')
+    :(cs.length>0?`<div class="hidden-box">📋 ${cs.length} card${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'');
+  return`
+    <div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
+    ${cardsHtml}
+    <div class="add-area">
+      <textarea class="add-input" id="inp-${col.id}" placeholder="${col.ph}" rows="2"></textarea>
+      <button class="add-btn" onclick="submitCard('${col.id}')">+ Adicionar card</button>
+    </div>`;
+}
+
+function escHtml(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render(){
+  const board=document.getElementById('board');
+  board.innerHTML=COLS.map(col=>`
+    <div class="col ${col.cls}">
+      ${col.type==='mood'?renderMoodCol(col):renderCardsCol(col)}
+    </div>`).join('');
+  const btn=document.getElementById('reveal-btn');
+  btn.textContent=state.revealed?'🙈 Ocultar cards':'👁 Revelar cards';
+  document.getElementById('subtitle').textContent=state.revealed
+    ?'Cards visíveis · clique em Ocultar para esconder novamente'
+    :'Cards anônimos ativados · adicione sem ver os outros';
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
+    const a=document.activeElement;
+    if(a&&a.id&&a.id.startsWith('inp-')){
+      submitCard(a.id.replace('inp-',''));
+    }
+  }
+});
+
+render();
+</script>
+</body>
+</html>
