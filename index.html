@@ -26,7 +26,8 @@
   .col-title{font-size:12px;font-weight:600;color:#1a1a1a;flex:1;line-height:1.3}
   .col-count{font-size:11px;color:#999;background:#f5f5f3;border-radius:20px;padding:2px 8px;border:1px solid #eee}
   .cards-area{display:flex;flex-direction:column;gap:7px;flex:1}
-  .card{background:#fafaf8;border:1px solid #e8e8e6;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;line-height:1.5}
+  .card{background:#fafaf8;border:1px solid #e8e8e6;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;line-height:1.5;animation:fadeIn 0.2s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
   .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
   .card-anon{font-size:11px;color:#bbb}
   .like-btn{font-size:11px;color:#999;background:none;border:1px solid #e8e8e6;border-radius:20px;padding:2px 9px;cursor:pointer;transition:all 0.15s}
@@ -48,7 +49,8 @@
   .mood-result{font-size:12px;color:#888;text-align:center;padding:4px 0;font-style:italic}
   .toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
   .toast.show{opacity:1}
-  .loading{text-align:center;padding:20px;color:#aaa;font-size:13px;font-style:italic}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block;margin-right:5px;transition:background 0.3s}
+  .status-dot.connected{background:#4caf50}
 </style>
 </head>
 <body>
@@ -56,7 +58,7 @@
   <div class="header">
     <div class="header-left">
       <div class="title">Retro — Time de Pagamentos</div>
-      <div class="subtitle" id="subtitle">Cards anônimos ativados · adicione sem ver os outros</div>
+      <div class="subtitle"><span class="status-dot" id="dot"></span><span id="subtitle">Conectando...</span></div>
     </div>
     <div class="actions">
       <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">👁 Revelar cards</button>
@@ -69,7 +71,7 @@
 
 <script>
 const SUPABASE_URL = 'https://nibdavavuzudwbxmrzbb.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_UpBzHer5grd39GjJsn9pHg_F7uFqaSo';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmRhdmF2dXp1ZHdieG1yemJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNDI4NTUsImV4cCI6MjA5MjcxODg1NX0.jlGWrHmpzCtQ5BpQrJn5faC3gSC24ixUMAkql-gayAo';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -84,7 +86,7 @@ const MOODS = [
   {e:'😔',l:'Difícil'},{e:'😕',l:'Abaixo'},{e:'😐',l:'Neutro'},{e:'😊',l:'Foi bem'},{e:'🤩',l:'Incrível!'}
 ];
 
-let state = {mood: null, revealed: false, cards: {mood:[],pride:[],good:[],bad:[],action:[]}, likedIds: new Set()};
+let state = {mood:null, revealed:false, cards:{mood:[],pride:[],good:[],bad:[],action:[]}, likedIds:new Set()};
 
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
@@ -94,13 +96,18 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
+function setStatus(connected){
+  document.getElementById('dot').className='status-dot'+(connected?' connected':'');
+  document.getElementById('subtitle').textContent=connected
+    ?(state.revealed?'Cards visíveis · tempo real ativo':'Cards anônimos ativados · tempo real ativo')
+    :'Reconectando...';
+}
+
 async function loadCards(){
   const {data,error}=await db.from('cards').select('*').order('criado_em',{ascending:true});
   if(error){showToast('Erro ao carregar cards');return;}
   state.cards={mood:[],pride:[],good:[],bad:[],action:[]};
-  (data||[]).forEach(c=>{
-    if(state.cards[c.coluna])state.cards[c.coluna].push(c);
-  });
+  (data||[]).forEach(c=>{if(state.cards[c.coluna])state.cards[c.coluna].push(c);});
   render();
 }
 
@@ -109,7 +116,7 @@ async function addCard(col, text){
   const btn=document.getElementById('btn-'+col);
   if(btn)btn.disabled=true;
   const {error}=await db.from('cards').insert({coluna:col,texto:text.trim(),likes:0});
-  if(error){showToast('Erro ao salvar card');if(btn)btn.disabled=false;return;}
+  if(error)showToast('Erro ao salvar card');
   const inp=document.getElementById('inp-'+col);
   if(inp)inp.value='';
   if(btn)btn.disabled=false;
@@ -118,14 +125,16 @@ async function addCard(col, text){
 async function likeCard(id, currentLikes, liked){
   if(liked){
     state.likedIds.delete(id);
-    await db.from('cards').update({likes: Math.max(0, currentLikes-1)}).eq('id',id);
+    await db.from('cards').update({likes:Math.max(0,currentLikes-1)}).eq('id',id);
   } else {
     state.likedIds.add(id);
-    await db.from('cards').update({likes: currentLikes+1}).eq('id',id);
+    await db.from('cards').update({likes:currentLikes+1}).eq('id',id);
   }
 }
 
-function toggleReveal(){state.revealed=!state.revealed;render();}
+function toggleReveal(){state.revealed=!state.revealed;render();setStatus(true);}
+function selectMood(i){state.mood=i;render();}
+function submitCard(col){const el=document.getElementById('inp-'+col);if(el)addCard(col,el.value);}
 
 function exportBoard(){
   let out='RETROSPECTIVA — TIME DE PAGAMENTOS\n'+'='.repeat(38)+'\n\n';
@@ -140,58 +149,37 @@ function exportBoard(){
   a.download='retro-pagamentos.txt';a.click();
 }
 
-function selectMood(i){state.mood=i;render();}
+function renderCards(col){
+  const cs=state.cards[col]||[];
+  if(!state.revealed)return cs.length>0?`<div class="hidden-box">📋 ${cs.length} card${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'';
+  return cs.map(c=>{
+    const liked=state.likedIds.has(c.id);
+    return`<div class="card"><span>${esc(c.texto)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${liked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${liked})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`;
+  }).join('');
+}
 
 function renderMoodCol(col){
-  const moodBtns=MOODS.map((m,i)=>`
-    <div class="mood-opt${state.mood===i?' selected':''}" onclick="selectMood(${i})">
-      <span class="mood-emoji">${m.e}</span>
-      <span class="mood-label">${m.l}</span>
-    </div>`).join('');
-  const result=state.mood!==null
-    ?`<div class="mood-result">${MOODS[state.mood].e} ${MOODS[state.mood].l}</div>`
-    :`<div class="mood-result">clique para votar</div>`;
   const cs=state.cards['mood']||[];
+  const moodBtns=MOODS.map((m,i)=>`<div class="mood-opt${state.mood===i?' selected':''}" onclick="selectMood(${i})"><span class="mood-emoji">${m.e}</span><span class="mood-label">${m.l}</span></div>`).join('');
+  const result=state.mood!==null?`<div class="mood-result">${MOODS[state.mood].e} ${MOODS[state.mood].l}</div>`:`<div class="mood-result">clique para votar</div>`;
   const cardsHtml=state.revealed
     ?cs.map(c=>{const liked=state.likedIds.has(c.id);return`<div class="card"><span>${esc(c.texto)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${liked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${liked})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`}).join('')
     :(cs.length>0?`<div class="hidden-box">💬 ${cs.length} comentário${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'');
-  return`
-    <div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
-    <div class="mood-grid">${moodBtns}</div>
-    ${result}
+  return`<div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
+    <div class="mood-grid">${moodBtns}</div>${result}
     <div class="cards-area">${cardsHtml}</div>
-    <div class="add-area">
-      <textarea class="add-input" id="inp-mood" placeholder="Comentário anônimo..." rows="2"></textarea>
-      <button class="add-btn" id="btn-mood" onclick="submitCard('mood')">+ Adicionar comentário</button>
-    </div>`;
+    <div class="add-area"><textarea class="add-input" id="inp-mood" placeholder="Comentário anônimo..." rows="2"></textarea><button class="add-btn" id="btn-mood" onclick="submitCard('mood')">+ Adicionar comentário</button></div>`;
 }
 
 function renderCardsCol(col){
-  const cs=state.cards[col.id]||[];
-  const cardsHtml=state.revealed
-    ?cs.map(c=>{const liked=state.likedIds.has(c.id);return`<div class="card"><span>${esc(c.texto)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${liked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${liked})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`}).join('')
-    :(cs.length>0?`<div class="hidden-box">📋 ${cs.length} card${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'');
-  return`
-    <div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
-    <div class="cards-area">${cardsHtml}</div>
-    <div class="add-area">
-      <textarea class="add-input" id="inp-${col.id}" placeholder="${col.ph}" rows="2"></textarea>
-      <button class="add-btn" id="btn-${col.id}" onclick="submitCard('${col.id}')">+ Adicionar card</button>
-    </div>`;
-}
-
-function submitCard(col){
-  const el=document.getElementById('inp-'+col);
-  if(el)addCard(col,el.value);
+  return`<div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${(state.cards[col.id]||[]).length}</span></div>
+    <div class="cards-area">${renderCards(col.id)}</div>
+    <div class="add-area"><textarea class="add-input" id="inp-${col.id}" placeholder="${col.ph}" rows="2"></textarea><button class="add-btn" id="btn-${col.id}" onclick="submitCard('${col.id}')">+ Adicionar card</button></div>`;
 }
 
 function render(){
-  const board=document.getElementById('board');
-  board.innerHTML=COLS.map(col=>`<div class="col">${col.type==='mood'?renderMoodCol(col):renderCardsCol(col)}</div>`).join('');
+  document.getElementById('board').innerHTML=COLS.map(col=>`<div class="col">${col.type==='mood'?renderMoodCol(col):renderCardsCol(col)}</div>`).join('');
   document.getElementById('reveal-btn').textContent=state.revealed?'🙈 Ocultar cards':'👁 Revelar cards';
-  document.getElementById('subtitle').textContent=state.revealed
-    ?'Cards visíveis · clique em Ocultar para esconder novamente'
-    :'Cards anônimos ativados · adicione sem ver os outros';
 }
 
 document.addEventListener('keydown',e=>{
@@ -201,12 +189,26 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-// Realtime
-db.channel('cards-channel')
-  .on('postgres_changes',{event:'*',schema:'public',table:'cards'},()=>{loadCards();})
-  .subscribe();
+// Realtime — escuta INSERT e UPDATE direto, sem reload completo
+db.channel('retro-realtime')
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'cards'},payload=>{
+    const c=payload.new;
+    if(state.cards[c.coluna]&&!state.cards[c.coluna].find(x=>x.id===c.id)){
+      state.cards[c.coluna].push(c);
+      render();
+    }
+  })
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'cards'},payload=>{
+    const c=payload.new;
+    if(state.cards[c.coluna]){
+      state.cards[c.coluna]=state.cards[c.coluna].map(x=>x.id===c.id?c:x);
+      render();
+    }
+  })
+  .subscribe(status=>{
+    setStatus(status==='SUBSCRIBED');
+  });
 
-// Init
 render();
 loadCards();
 </script>
