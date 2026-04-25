@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Retro — Time de Pagamentos</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
@@ -22,8 +23,9 @@
   .col{background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:340px;border:1px solid #e8e8e6}
   .col-header{display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid #f0f0ee;margin-bottom:2px}
   .col-icon{font-size:16px}
-  .col-title{font-size:12px;font-weight:600;color:#1a1a1a;line-height:1.3;flex:1}
+  .col-title{font-size:12px;font-weight:600;color:#1a1a1a;flex:1;line-height:1.3}
   .col-count{font-size:11px;color:#999;background:#f5f5f3;border-radius:20px;padding:2px 8px;border:1px solid #eee}
+  .cards-area{display:flex;flex-direction:column;gap:7px;flex:1}
   .card{background:#fafaf8;border:1px solid #e8e8e6;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;line-height:1.5}
   .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
   .card-anon{font-size:11px;color:#bbb}
@@ -31,11 +33,12 @@
   .like-btn:hover{background:#eef4ff;color:#3b7dd8;border-color:#b8d0f5}
   .like-btn.liked{background:#eef4ff;color:#3b7dd8;border-color:#b8d0f5;font-weight:600}
   .hidden-box{background:#f9f9f7;border:1px dashed #ddd;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#aaa;font-style:italic}
-  .add-area{margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:7px}
+  .add-area{padding-top:10px;display:flex;flex-direction:column;gap:7px;margin-top:auto}
   .add-input{font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid #e0e0de;background:#fafaf8;color:#1a1a1a;width:100%;resize:none;height:68px;font-family:inherit;transition:border 0.15s}
   .add-input:focus{outline:none;border-color:#aaa;background:#fff}
   .add-btn{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #e0e0de;background:#fafaf8;color:#666;cursor:pointer;transition:all 0.15s;text-align:left;font-family:inherit}
   .add-btn:hover{background:#f0f0ee;color:#333;border-color:#ccc}
+  .add-btn:disabled{opacity:0.5;cursor:not-allowed}
   .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0}
   .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s}
   .mood-opt:hover{background:#f5f5f3}
@@ -43,10 +46,9 @@
   .mood-emoji{font-size:20px}
   .mood-label{font-size:9px;color:#999;text-align:center;line-height:1.2}
   .mood-result{font-size:12px;color:#888;text-align:center;padding:4px 0;font-style:italic}
-  .col-pride .col-header{border-bottom-color:#fff3e0}
-  .col-good .col-header{border-bottom-color:#e8f5e9}
-  .col-bad .col-header{border-bottom-color:#fce4e4}
-  .col-action .col-header{border-bottom-color:#e3f2fd}
+  .toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
+  .toast.show{opacity:1}
+  .loading{text-align:center;padding:20px;color:#aaa;font-size:13px;font-style:italic}
 </style>
 </head>
 <body>
@@ -63,62 +65,82 @@
   </div>
   <div class="columns" id="board"></div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
-const COLS=[
-  {id:'mood',cls:'col-mood',icon:'🌡',title:'Como foi o sentimento da sprint?',type:'mood'},
-  {id:'pride',cls:'col-pride',icon:'🏆',title:'Mural do orgulho',type:'cards',ph:'O que o time pode se orgulhar?'},
-  {id:'good',cls:'col-good',icon:'✅',title:'O que deu bom?',type:'cards',ph:'O que repetimos na próxima sprint?'},
-  {id:'bad',cls:'col-bad',icon:'📌',title:'O que não deu tão bom?',type:'cards',ph:'O que podemos melhorar?'},
-  {id:'action',cls:'col-action',icon:'🚀',title:'Ação da retro',type:'cards',ph:'Responsável · o que faremos?'},
-];
-const MOODS=[
-  {e:'😔',l:'Difícil'},
-  {e:'😕',l:'Abaixo'},
-  {e:'😐',l:'Neutro'},
-  {e:'😊',l:'Foi bem'},
-  {e:'🤩',l:'Incrível!'},
-];
-let state={mood:null,revealed:false,cards:{mood:[],pride:[],good:[],bad:[],action:[]}};
+const SUPABASE_URL = 'https://nibdavavuzudwbxmrzbb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UpBzHer5grd39GjJsn9pHg_F7uFqaSo';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function cards(id){return state.cards[id]||[]}
+const COLS = [
+  {id:'mood', icon:'🌡', title:'Como foi o sentimento da sprint?', type:'mood'},
+  {id:'pride', icon:'🏆', title:'Mural do orgulho', type:'cards', ph:'O que o time pode se orgulhar?'},
+  {id:'good', icon:'✅', title:'O que deu bom?', type:'cards', ph:'O que repetimos na próxima sprint?'},
+  {id:'bad', icon:'📌', title:'O que não deu tão bom?', type:'cards', ph:'O que podemos melhorar?'},
+  {id:'action', icon:'🚀', title:'Ação da retro', type:'cards', ph:'Responsável · o que faremos?'},
+];
+const MOODS = [
+  {e:'😔',l:'Difícil'},{e:'😕',l:'Abaixo'},{e:'😐',l:'Neutro'},{e:'😊',l:'Foi bem'},{e:'🤩',l:'Incrível!'}
+];
 
-function addCard(col,text){
+let state = {mood: null, revealed: false, cards: {mood:[],pride:[],good:[],bad:[],action:[]}, likedIds: new Set()};
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+async function loadCards(){
+  const {data,error}=await db.from('cards').select('*').order('criado_em',{ascending:true});
+  if(error){showToast('Erro ao carregar cards');return;}
+  state.cards={mood:[],pride:[],good:[],bad:[],action:[]};
+  (data||[]).forEach(c=>{
+    if(state.cards[c.coluna])state.cards[c.coluna].push(c);
+  });
+  render();
+}
+
+async function addCard(col, text){
   if(!text.trim())return;
-  state.cards[col]=[...cards(col),{id:Date.now(),text:text.trim(),likes:0,liked:false}];
-  render();
+  const btn=document.getElementById('btn-'+col);
+  if(btn)btn.disabled=true;
+  const {error}=await db.from('cards').insert({coluna:col,texto:text.trim(),likes:0});
+  if(error){showToast('Erro ao salvar card');if(btn)btn.disabled=false;return;}
+  const inp=document.getElementById('inp-'+col);
+  if(inp)inp.value='';
+  if(btn)btn.disabled=false;
 }
 
-function like(col,id){
-  state.cards[col]=state.cards[col].map(c=>c.id===id?{...c,likes:c.liked?c.likes-1:c.likes+1,liked:!c.liked}:c);
-  render();
+async function likeCard(id, currentLikes, liked){
+  if(liked){
+    state.likedIds.delete(id);
+    await db.from('cards').update({likes: Math.max(0, currentLikes-1)}).eq('id',id);
+  } else {
+    state.likedIds.add(id);
+    await db.from('cards').update({likes: currentLikes+1}).eq('id',id);
+  }
 }
 
-function toggleReveal(){
-  state.revealed=!state.revealed;
-  render();
-}
-
-function submitCard(col){
-  const el=document.getElementById('inp-'+col);
-  if(el){addCard(col,el.value);el.value='';}
-}
-
-function selectMood(i){state.mood=i;render();}
+function toggleReveal(){state.revealed=!state.revealed;render();}
 
 function exportBoard(){
   let out='RETROSPECTIVA — TIME DE PAGAMENTOS\n'+'='.repeat(38)+'\n\n';
   COLS.forEach(col=>{
     out+=col.icon+' '+col.title.toUpperCase()+'\n'+'-'.repeat(30)+'\n';
     if(col.id==='mood'&&state.mood!==null)out+='Humor: '+MOODS[state.mood].e+' '+MOODS[state.mood].l+'\n';
-    cards(col.id).forEach((c,i)=>out+=(i+1)+'. '+c.text+(c.likes>0?' ('+c.likes+' votos)':'')+'\n');
+    (state.cards[col.id]||[]).forEach((c,i)=>out+=(i+1)+'. '+c.texto+(c.likes>0?' ('+c.likes+' votos)':'')+'\n');
     out+='\n';
   });
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(out);
-  a.download='retro-pagamentos.txt';
-  a.click();
+  a.download='retro-pagamentos.txt';a.click();
 }
+
+function selectMood(i){state.mood=i;render();}
 
 function renderMoodCol(col){
   const moodBtns=MOODS.map((m,i)=>`
@@ -129,47 +151,44 @@ function renderMoodCol(col){
   const result=state.mood!==null
     ?`<div class="mood-result">${MOODS[state.mood].e} ${MOODS[state.mood].l}</div>`
     :`<div class="mood-result">clique para votar</div>`;
-  const cs=cards('mood');
+  const cs=state.cards['mood']||[];
   const cardsHtml=state.revealed
-    ?cs.map(c=>`<div class="card"><span>${escHtml(c.text)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${c.liked?' liked':''}" onclick="like('mood',${c.id})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`).join('')
+    ?cs.map(c=>{const liked=state.likedIds.has(c.id);return`<div class="card"><span>${esc(c.texto)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${liked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${liked})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`}).join('')
     :(cs.length>0?`<div class="hidden-box">💬 ${cs.length} comentário${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'');
   return`
     <div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
     <div class="mood-grid">${moodBtns}</div>
     ${result}
-    ${cardsHtml}
+    <div class="cards-area">${cardsHtml}</div>
     <div class="add-area">
       <textarea class="add-input" id="inp-mood" placeholder="Comentário anônimo..." rows="2"></textarea>
-      <button class="add-btn" onclick="submitCard('mood')">+ Adicionar comentário</button>
+      <button class="add-btn" id="btn-mood" onclick="submitCard('mood')">+ Adicionar comentário</button>
     </div>`;
 }
 
 function renderCardsCol(col){
-  const cs=cards(col.id);
+  const cs=state.cards[col.id]||[];
   const cardsHtml=state.revealed
-    ?cs.map(c=>`<div class="card"><span>${escHtml(c.text)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${c.liked?' liked':''}" onclick="like('${col.id}',${c.id})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`).join('')
+    ?cs.map(c=>{const liked=state.likedIds.has(c.id);return`<div class="card"><span>${esc(c.texto)}</span><div class="card-footer"><span class="card-anon">anônimo</span><button class="like-btn${liked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${liked})">+1${c.likes>0?' · '+c.likes:''}</button></div></div>`}).join('')
     :(cs.length>0?`<div class="hidden-box">📋 ${cs.length} card${cs.length>1?'s':''} oculto${cs.length>1?'s':''}</div>`:'');
   return`
     <div class="col-header"><span class="col-icon">${col.icon}</span><span class="col-title">${col.title}</span><span class="col-count">${cs.length}</span></div>
-    ${cardsHtml}
+    <div class="cards-area">${cardsHtml}</div>
     <div class="add-area">
       <textarea class="add-input" id="inp-${col.id}" placeholder="${col.ph}" rows="2"></textarea>
-      <button class="add-btn" onclick="submitCard('${col.id}')">+ Adicionar card</button>
+      <button class="add-btn" id="btn-${col.id}" onclick="submitCard('${col.id}')">+ Adicionar card</button>
     </div>`;
 }
 
-function escHtml(t){
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function submitCard(col){
+  const el=document.getElementById('inp-'+col);
+  if(el)addCard(col,el.value);
 }
 
 function render(){
   const board=document.getElementById('board');
-  board.innerHTML=COLS.map(col=>`
-    <div class="col ${col.cls}">
-      ${col.type==='mood'?renderMoodCol(col):renderCardsCol(col)}
-    </div>`).join('');
-  const btn=document.getElementById('reveal-btn');
-  btn.textContent=state.revealed?'🙈 Ocultar cards':'👁 Revelar cards';
+  board.innerHTML=COLS.map(col=>`<div class="col">${col.type==='mood'?renderMoodCol(col):renderCardsCol(col)}</div>`).join('');
+  document.getElementById('reveal-btn').textContent=state.revealed?'🙈 Ocultar cards':'👁 Revelar cards';
   document.getElementById('subtitle').textContent=state.revealed
     ?'Cards visíveis · clique em Ocultar para esconder novamente'
     :'Cards anônimos ativados · adicione sem ver os outros';
@@ -178,13 +197,18 @@ function render(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
     const a=document.activeElement;
-    if(a&&a.id&&a.id.startsWith('inp-')){
-      submitCard(a.id.replace('inp-',''));
-    }
+    if(a&&a.id&&a.id.startsWith('inp-'))submitCard(a.id.replace('inp-',''));
   }
 });
 
+// Realtime
+db.channel('cards-channel')
+  .on('postgres_changes',{event:'*',schema:'public',table:'cards'},()=>{loadCards();})
+  .subscribe();
+
+// Init
 render();
+loadCards();
 </script>
 </body>
 </html>
