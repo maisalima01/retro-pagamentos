@@ -107,19 +107,19 @@
       <div class="cycle-row" id="cycle-row"><span class="cycle-display" id="cycle-display" onclick="editCycle()">+ Adicionar cycle da sprint</span></div>
     </div>
     <div class="actions">
-      <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">&#128065; Revelar cards</button>
-      <button class="btn btn-danger" onclick="confirmLimpar()">&#128465; Limpar tudo</button>
-      <button class="btn" onclick="exportBoard()">&#8595; Exportar</button>
+      <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">👁 Revelar cards</button>
+      <button class="btn btn-danger" onclick="confirmLimpar()">🗑 Limpar tudo</button>
+      <button class="btn" onclick="exportBoard()">↓ Exportar</button>
     </div>
   </div>
   <div class="columns" id="board"></div>
 </div>
 <div class="action-panel" id="action-panel">
   <div class="action-panel-header" onclick="toggleActionPanel()">
-    <span class="action-panel-icon">&#128640;</span>
+    <span class="action-panel-icon">🚀</span>
     <span class="action-panel-title">Ação da retro</span>
     <span class="action-panel-count" id="action-count">0</span>
-    <span class="action-panel-toggle open" id="action-toggle">&#9660;</span>
+    <span class="action-panel-toggle open" id="action-toggle">▼</span>
   </div>
   <div class="action-panel-body" id="action-body"></div>
 </div>
@@ -132,12 +132,12 @@ const db=createClient(SUPABASE_URL,SUPABASE_KEY,{realtime:{params:{eventsPerSeco
 const SESSAO_ID='retro-pagamentos';
 const SENHA='2558';
 const COLS=[
-  {id:'mood',cls:'col-mood',icon:'&#127777;',title:'Como foi o sentimento da sprint?',type:'mood'},
-  {id:'pride',cls:'col-pride',icon:'&#127942;',title:'Mural do orgulho',type:'cards',ph:'O que o time pode se orgulhar?'},
-  {id:'good',cls:'col-good',icon:'&#9989;',title:'O que deu bom?',type:'cards',ph:'O que repetimos na proxima sprint?'},
-  {id:'bad',cls:'col-bad',icon:'&#128204;',title:'O que nao deu tao bom?',type:'cards',ph:'O que podemos melhorar?'},
+  {id:'mood',cls:'col-mood',icon:'🌡',title:'Como foi o sentimento da sprint?',type:'mood'},
+  {id:'pride',cls:'col-pride',icon:'🏆',title:'Mural do orgulho',type:'cards',ph:'O que o time pode se orgulhar?'},
+  {id:'good',cls:'col-good',icon:'✅',title:'O que deu bom?',type:'cards',ph:'O que repetimos na proxima sprint?'},
+  {id:'bad',cls:'col-bad',icon:'📌',title:'O que nao deu tao bom?',type:'cards',ph:'O que podemos melhorar?'},
 ];
-const MOODS=[{e:'&#128532;',l:'Dificil'},{e:'&#128533;',l:'Abaixo'},{e:'&#128528;',l:'Neutro'},{e:'&#128522;',l:'Foi bem'},{e:'&#129321;',l:'Incrivel!'}];
+const MOODS=[{e:'😔',l:'Dificil'},{e:'😕',l:'Abaixo'},{e:'😐',l:'Neutro'},{e:'😊',l:'Foi bem'},{e:'🤩',l:'Incrivel!'}];
 const COL_IDS=[...COLS.map(c=>c.id),'action'];
 let cards={mood:[],pride:[],good:[],bad:[],action:[]};
 let liked=new Set(),revealed=false,openCol=null,humorVotos=[],meuVotoId=null,cycle='',editingCycle=false,actionPanelOpen=true;
@@ -154,7 +154,7 @@ function renderCycle(){
     row.innerHTML='<input class="cycle-input" id="cycle-input" type="text" value="'+esc(cycle)+'" placeholder="Ex: Cycle 12 Sprint 24" maxlength="60"/><span class="cycle-hint">Enter para salvar Esc para cancelar</span>';
     const inp=document.getElementById('cycle-input');
     if(inp){inp.focus();inp.select();inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveCycle(inp.value);if(e.key==='Escape'){editingCycle=false;renderCycle();}});inp.addEventListener('blur',()=>{if(editingCycle)saveCycle(inp.value);});}
-  }else{row.innerHTML='<span class="cycle-display" id="cycle-display" onclick="editCycle()">'+(cycle?'&#128197; '+esc(cycle):'+ Adicionar cycle da sprint')+'</span>';}
+  }else{row.innerHTML='<span class="cycle-display" id="cycle-display" onclick="editCycle()">'+(cycle?'📅 '+esc(cycle):'+ Adicionar cycle da sprint')+'</span>';}
 }
 function editCycle(){editingCycle=true;renderCycle();}
 async function saveCycle(val){editingCycle=false;cycle=val.trim();renderCycle();await db.from('sessao').upsert({id:SESSAO_ID,cycle:cycle,atualizado_em:new Date().toISOString()});}
@@ -196,10 +196,10 @@ async function limparTudo(){
 }
 function aplicarLimpeza(){cards={mood:[],pride:[],good:[],bad:[],action:[]};humorVotos=[];meuVotoId=null;revealed=false;openCol=null;cycle='';sessionStorage.removeItem('meu_voto_id');render();renderActionPanel();renderCycle();updateSubtitle();}
 
-function cardHTML(c,colId){const isLiked=liked.has(c.id);return'<div class="card"><span>'+esc(c.texto)+'</span><div class="card-footer"><span class="card-anon">anonimo</span><div class="card-actions"><button class="like-btn'+(isLiked?' liked':'')+'" onclick="likeCard(\''+c.id+'\','+c.likes+','+isLiked+',\''+colId+'\')">+1'+(c.likes>0?' · '+c.likes:'')+'</button><button class="del-btn" onclick="deleteCard(\''+c.id+'\',\''+colId+'\')" title="Deletar">&#10005;</button></div></div></div>';}
+function cardHTML(c,colId){const isLiked=liked.has(c.id);return'<div class="card"><span>'+esc(c.texto)+'</span><div class="card-footer"><span class="card-anon">anonimo</span><div class="card-actions"><button class="like-btn'+(isLiked?' liked':'')+'" onclick="likeCard(\''+c.id+'\','+c.likes+','+isLiked+',\''+colId+'\')">+1'+(c.likes>0?' · '+c.likes:'')+'</button><button class="del-btn" onclick="deleteCard(\''+c.id+'\',\''+colId+'\')" title="Deletar">✕</button></div></div></div>';}
 function newCardHTML(col){return'<div class="new-card"><textarea id="new-inp-'+col+'" placeholder="Escreva seu card..." rows="3"></textarea><div class="new-card-footer"><span class="new-card-hint">anonimo · Ctrl+Enter envia</span><div class="new-card-actions"><button class="btn-cancelar" onclick="cancelNewCard()">Cancelar</button><button class="btn-enviar" id="new-btn-'+col+'" onclick="submitNewCard(\''+col+'\')">Enviar</button></div></div></div>';}
 function addCardBtnHTML(col,label){return'<button class="add-card-btn" onclick="openNewCard(\''+col+'\')">+ '+(label||'Adicionar card')+'</button>';}
-function hiddenBox(n,type){return'<div class="hidden-box">'+(type==='mood'?'&#128172;':'&#128203;')+' '+n+' card'+(n>1?'s':'')+' oculto'+(n>1?'s':'')+'</div>';}
+function hiddenBox(n,type){return'<div class="hidden-box">'+(type==='mood'?'💬':'📋')+' '+n+' card'+(n>1?'s':'')+' oculto'+(n>1?'s':'')+'</div>';}
 
 function renderMoodCol(col){
   const cs=cards['mood'],meuVoto=getMeuVotoAtual(),media=calcMedia(),cont=[0,0,0,0,0];
@@ -219,7 +219,7 @@ function renderCardsCol(col){
 function render(){
   const board=document.getElementById('board');if(!board)return;
   board.innerHTML=COLS.map(col=>'<div class="col '+col.cls+'">'+(col.type==='mood'?renderMoodCol(col):renderCardsCol(col))+'</div>').join('');
-  const btn=document.getElementById('reveal-btn');if(btn)btn.textContent=revealed?'&#128584; Ocultar cards':'&#128065; Revelar cards';
+  const btn=document.getElementById('reveal-btn');if(btn)btn.textContent=revealed?'🙈 Ocultar cards':'👁 Revelar cards';
   renderActionPanel();
 }
 function renderActionPanel(){
