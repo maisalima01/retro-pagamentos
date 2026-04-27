@@ -40,13 +40,23 @@
   .del-btn{font-size:11px;color:#ccc;background:none;border:1px solid #eee;border-radius:20px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
   .del-btn:hover{background:#fff0f0;color:#c0392b;border-color:#f5c6c6}
   .hidden-box{background:#f9f9f7;border:1px dashed #ddd;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#aaa;font-style:italic}
-  .add-area{padding-top:10px;display:flex;flex-direction:column;gap:7px;margin-top:auto}
-  .add-input{font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid #e0e0de;background:#fafaf8;color:#1a1a1a;width:100%;resize:none;height:68px;font-family:inherit;transition:border 0.15s}
-  .add-input:focus{outline:none;border-color:#aaa;background:#fff}
-  .add-row{display:flex;gap:6px;align-items:stretch}
-  .add-btn{font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap}
-  .add-btn:hover{background:#333}
-  .add-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+  /* card em criação */
+  .new-card{background:#fafaf8;border:1px solid #b8d0f5;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;animation:fadeIn 0.15s ease}
+  .new-card textarea{font-size:13px;padding:0;border:none;background:transparent;color:#1a1a1a;width:100%;resize:none;height:64px;font-family:inherit;outline:none;line-height:1.5}
+  .new-card-footer{display:flex;justify-content:space-between;align-items:center}
+  .new-card-hint{font-size:11px;color:#bbb}
+  .new-card-actions{display:flex;gap:6px}
+  .btn-enviar{font-size:12px;padding:4px 12px;border-radius:7px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .btn-enviar:hover{background:#333}
+  .btn-enviar:disabled{opacity:0.4;cursor:not-allowed}
+  .btn-cancelar{font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .btn-cancelar:hover{background:#f0f0ee}
+
+  /* botão adicionar */
+  .add-card-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:#999;background:none;border:1px dashed #ddd;border-radius:10px;padding:9px 12px;cursor:pointer;width:100%;transition:all 0.15s;font-family:inherit;margin-top:auto}
+  .add-card-btn:hover{border-color:#aaa;color:#555;background:#fafaf8}
+
   .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0}
   .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s}
   .mood-opt:hover{background:#f5f5f3}
@@ -108,6 +118,7 @@ let cards    = {mood:[],pride:[],good:[],bad:[],action:[]};
 let liked    = new Set();
 let revealed = false;
 let mood     = null;
+let openCol  = null; // qual coluna está com o card aberto
 
 function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 
@@ -121,28 +132,26 @@ function setStatus(ok){
   const dot = document.getElementById('dot');
   const sub = document.getElementById('subtitle');
   if(!dot||!sub) return;
-  dot.className = 'status-dot' + (ok ? ' connected' : '');
+  dot.className = 'status-dot'+(ok?' connected':'');
   sub.textContent = ok
     ? (revealed ? 'Cards visíveis · tempo real ativo' : 'Cards anônimos · tempo real ativo')
     : 'Reconectando...';
 }
 
-// ── Sessão (humor) ─────────────────────────────────────────────────────────
+// ── Sessão ────────────────────────────────────────────────────────────────
 async function loadSessao(){
   const { data } = await db.from('sessao').select('*').eq('id', SESSAO_ID).maybeSingle();
   if(data && data.humor !== null && data.humor !== undefined){
-    mood = data.humor;
-    render();
+    mood = data.humor; render();
   }
 }
 
 async function saveMood(i){
-  mood = i;
-  render();
+  mood = i; render();
   await db.from('sessao').upsert({ id: SESSAO_ID, humor: i, atualizado_em: new Date().toISOString() });
 }
 
-// ── Cards ──────────────────────────────────────────────────────────────────
+// ── Cards ─────────────────────────────────────────────────────────────────
 async function loadCards(){
   const { data, error } = await db.from('cards').select('*').order('criado_em', { ascending: true });
   if(error){ toast('Erro ao carregar'); return; }
@@ -151,15 +160,23 @@ async function loadCards(){
   render();
 }
 
-async function addCard(col, text){
-  if(!text||!text.trim()) return;
-  const btn = document.getElementById('btn-'+col);
-  const inp = document.getElementById('inp-'+col);
+function openNewCard(col){
+  openCol = col; render();
+  setTimeout(() => { const el = document.getElementById('new-inp-'+col); if(el) el.focus(); }, 50);
+}
+
+function cancelNewCard(){ openCol = null; render(); }
+
+async function submitNewCard(col){
+  const el = document.getElementById('new-inp-'+col);
+  if(!el||!el.value.trim()) return;
+  const btn = document.getElementById('new-btn-'+col);
   if(btn) btn.disabled = true;
-  const { error } = await db.from('cards').insert({ coluna: col, texto: text.trim(), likes: 0 });
+  const text = el.value.trim();
+  const { error } = await db.from('cards').insert({ coluna: col, texto: text, likes: 0 });
   if(error) toast('Erro ao salvar card');
-  if(inp) inp.value = '';
-  if(btn) btn.disabled = false;
+  openCol = null;
+  render();
 }
 
 async function deleteCard(id, col){
@@ -178,7 +195,7 @@ async function likeCard(id, currentLikes, isLiked, col){
   }
 }
 
-// ── Limpar tudo ────────────────────────────────────────────────────────────
+// ── Limpar tudo ───────────────────────────────────────────────────────────
 function confirmLimpar(){
   const overlay = document.createElement('div');
   overlay.className = 'confirm-overlay';
@@ -195,19 +212,17 @@ function confirmLimpar(){
 }
 
 async function limparTudo(btn){
-  btn.disabled = true;
-  btn.textContent = 'Limpando...';
+  btn.disabled = true; btn.textContent = 'Limpando...';
   await db.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   await db.from('sessao').delete().eq('id', SESSAO_ID);
   cards = {mood:[],pride:[],good:[],bad:[],action:[]};
-  mood = null;
-  revealed = false;
+  mood = null; revealed = false; openCol = null;
   document.querySelector('.confirm-overlay')?.remove();
   render();
   toast('Board limpo! Pronto para nova retro 🎉');
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────
 function cardHTML(c, colId){
   const isLiked = liked.has(c.id);
   return `<div class="card">
@@ -216,10 +231,27 @@ function cardHTML(c, colId){
       <span class="card-anon">anônimo</span>
       <div class="card-actions">
         <button class="like-btn${isLiked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${isLiked},'${colId}')">+1${c.likes>0?' · '+c.likes:''}</button>
-        <button class="del-btn" onclick="deleteCard('${c.id}','${colId}')" title="Deletar card">✕</button>
+        <button class="del-btn" onclick="deleteCard('${c.id}','${colId}')" title="Deletar">✕</button>
       </div>
     </div>
   </div>`;
+}
+
+function newCardHTML(col){
+  return `<div class="new-card">
+    <textarea id="new-inp-${col}" placeholder="Escreva seu card..." rows="3"></textarea>
+    <div class="new-card-footer">
+      <span class="new-card-hint">anônimo · Ctrl+Enter para enviar</span>
+      <div class="new-card-actions">
+        <button class="btn-cancelar" onclick="cancelNewCard()">Cancelar</button>
+        <button class="btn-enviar" id="new-btn-${col}" onclick="submitNewCard('${col}')">Enviar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addCardBtnHTML(col, label){
+  return `<button class="add-card-btn" onclick="openNewCard('${col}')">+ ${label||'Adicionar card'}</button>`;
 }
 
 function hiddenBox(n, type){
@@ -239,6 +271,7 @@ function renderMoodCol(col){
   const cardsHTML = revealed
     ? cs.map(c => cardHTML(c,'mood')).join('')
     : (cs.length > 0 ? hiddenBox(cs.length,'mood') : '');
+  const addArea = openCol==='mood' ? newCardHTML('mood') : addCardBtnHTML('mood','Adicionar comentário');
   return `
     <div class="col-header">
       <span class="col-icon">${col.icon}</span>
@@ -248,12 +281,7 @@ function renderMoodCol(col){
     <div class="mood-grid">${moodBtns}</div>
     ${result}
     <div class="cards-area">${cardsHTML}</div>
-    <div class="add-area">
-      <textarea class="add-input" id="inp-mood" placeholder="Comentário anônimo..." rows="2"></textarea>
-      <div class="add-row">
-        <button class="add-btn" id="btn-mood" onclick="submitCard('mood')">Enviar</button>
-      </div>
-    </div>`;
+    ${addArea}`;
 }
 
 function renderCardsCol(col){
@@ -261,6 +289,7 @@ function renderCardsCol(col){
   const cardsHTML = revealed
     ? cs.map(c => cardHTML(c, col.id)).join('')
     : (cs.length > 0 ? hiddenBox(cs.length,'cards') : '');
+  const addArea = openCol===col.id ? newCardHTML(col.id) : addCardBtnHTML(col.id,'Adicionar card');
   return `
     <div class="col-header">
       <span class="col-icon">${col.icon}</span>
@@ -268,12 +297,7 @@ function renderCardsCol(col){
       <span class="col-count">${cs.length}</span>
     </div>
     <div class="cards-area">${cardsHTML}</div>
-    <div class="add-area">
-      <textarea class="add-input" id="inp-${col.id}" placeholder="${col.ph}" rows="2"></textarea>
-      <div class="add-row">
-        <button class="add-btn" id="btn-${col.id}" onclick="submitCard('${col.id}')">Enviar</button>
-      </div>
-    </div>`;
+    ${addArea}`;
 }
 
 function render(){
@@ -287,7 +311,6 @@ function render(){
 }
 
 function toggleReveal(){ revealed = !revealed; render(); setStatus(true); }
-function submitCard(col){ const el = document.getElementById('inp-'+col); if(el) addCard(col, el.value); }
 
 function exportBoard(){
   let out = 'RETROSPECTIVA — TIME DE PAGAMENTOS\n'+'='.repeat(38)+'\n\n';
@@ -305,15 +328,15 @@ function exportBoard(){
 }
 
 document.addEventListener('keydown', e => {
-  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
-    const a = document.activeElement;
-    if(a&&a.id&&a.id.startsWith('inp-')) submitCard(a.id.replace('inp-',''));
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&openCol){
+    submitNewCard(openCol);
   }
+  if(e.key==='Escape'&&openCol){ cancelNewCard(); }
 });
 
-// ── Realtime ───────────────────────────────────────────────────────────────
+// ── Realtime ──────────────────────────────────────────────────────────────
 function setupRealtime(){
-  db.channel('retro-v3')
+  db.channel('retro-v4')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'cards'}, payload => {
       try {
         const c = payload.new;
@@ -339,13 +362,10 @@ function setupRealtime(){
         render();
       } catch(err){ console.error(err); }
     })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessao'}, payload => {
+    .on('postgres_changes',{event:'*',schema:'public',table:'sessao'}, payload => {
       try {
         const s = payload.new;
-        if(s&&s.id===SESSAO_ID&&s.humor!==undefined){
-          mood = s.humor;
-          render();
-        }
+        if(s&&s.id===SESSAO_ID&&s.humor!==undefined){ mood = s.humor; render(); }
       } catch(err){ console.error(err); }
     })
     .subscribe(status => {
