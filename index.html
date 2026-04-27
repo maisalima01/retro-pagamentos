@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -14,6 +15,11 @@
   .header-left .subtitle{font-size:13px;color:#888;margin-top:3px;display:flex;align-items:center;gap:5px}
   .status-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block;flex-shrink:0;transition:background 0.3s}
   .status-dot.connected{background:#4caf50}
+  .cycle-row{display:flex;align-items:center;gap:6px;margin-top:5px}
+  .cycle-display{font-size:13px;color:#555;font-weight:500;cursor:pointer;border-bottom:1px dashed #ccc;padding-bottom:1px}
+  .cycle-display:hover{color:#1a1a1a;border-bottom-color:#888}
+  .cycle-input{font-size:13px;color:#1a1a1a;border:none;border-bottom:1.5px solid #3b7dd8;background:transparent;outline:none;width:180px;font-family:inherit;padding-bottom:1px}
+  .cycle-hint{font-size:11px;color:#bbb}
   .actions{display:flex;gap:8px;flex-wrap:wrap}
   .btn{font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#333;cursor:pointer;transition:all 0.15s;font-weight:500}
   .btn:hover{background:#f0f0ee}
@@ -52,8 +58,6 @@
   .btn-cancelar:hover{background:#f0f0ee}
   .add-card-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:#999;background:none;border:1px dashed #ddd;border-radius:10px;padding:9px 12px;cursor:pointer;width:100%;transition:all 0.15s;font-family:inherit;margin-top:auto}
   .add-card-btn:hover{border-color:#aaa;color:#555;background:#fafaf8}
-
-  /* humor */
   .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0}
   .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s;position:relative}
   .mood-opt:hover{background:#f5f5f3}
@@ -66,7 +70,6 @@
   .mood-votos{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
   .mood-voto-chip{font-size:11px;background:#f5f5f3;border:1px solid #eee;border-radius:20px;padding:2px 8px;color:#666}
   .mood-hint{font-size:11px;color:#bbb;text-align:center;font-style:italic;padding:4px 0}
-
   .toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
   .toast.show{opacity:1}
   .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
@@ -85,6 +88,9 @@
         <span class="status-dot" id="dot"></span>
         <span id="subtitle">Conectando...</span>
       </div>
+      <div class="cycle-row" id="cycle-row">
+        <span class="cycle-display" id="cycle-display" onclick="editCycle()">+ Adicionar cycle da sprint</span>
+      </div>
     </div>
     <div class="actions">
       <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">👁 Revelar cards</button>
@@ -100,9 +106,7 @@
 const SUPABASE_URL = 'https://nibdavavuzudwbxmrzbb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmRhdmF2dXp1ZHdieG1yemJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNDI4NTUsImV4cCI6MjA5MjcxODg1NX0.jlGWrHmpzCtQ5BpQrJn5faC3gSC24ixUMAkql-gayAo';
 const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  realtime: { params: { eventsPerSecond: 10 } }
-});
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, { realtime: { params: { eventsPerSecond: 10 } } });
 
 const SESSAO_ID = 'retro-pagamentos';
 const COLS = [
@@ -121,8 +125,10 @@ let cards      = {mood:[],pride:[],good:[],bad:[],action:[]};
 let liked      = new Set();
 let revealed   = false;
 let openCol    = null;
-let humorVotos = []; // [{id, humor}]
-let meuVotoId  = null; // id do voto desta sessão (localStorage)
+let humorVotos = [];
+let meuVotoId  = null;
+let cycle      = '';
+let editingCycle = false;
 
 function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 
@@ -142,7 +148,49 @@ function setStatus(ok){
     : 'Reconectando...';
 }
 
-// ── Humor por pessoa ──────────────────────────────────────────────────────
+// ── Cycle ─────────────────────────────────────────────────────────────────
+function renderCycle(){
+  const row = document.getElementById('cycle-row');
+  if(!row) return;
+  if(editingCycle){
+    row.innerHTML = `<input class="cycle-input" id="cycle-input" type="text" value="${esc(cycle)}" placeholder="Ex: Cycle 12 · Sprint 24" maxlength="60" />
+      <span class="cycle-hint">Enter para salvar · Esc para cancelar</span>`;
+    const inp = document.getElementById('cycle-input');
+    if(inp){ inp.focus(); inp.select();
+      inp.addEventListener('keydown', e => {
+        if(e.key==='Enter'){ saveCycle(inp.value); }
+        if(e.key==='Escape'){ editingCycle=false; renderCycle(); }
+      });
+      inp.addEventListener('blur', () => { saveCycle(inp.value); });
+    }
+  } else {
+    const display = document.getElementById('cycle-display');
+    if(display){
+      display.textContent = cycle ? '📅 '+cycle : '+ Adicionar cycle da sprint';
+    } else {
+      row.innerHTML = `<span class="cycle-display" id="cycle-display" onclick="editCycle()">${cycle ? '📅 '+esc(cycle) : '+ Adicionar cycle da sprint'}</span>`;
+    }
+  }
+}
+
+function editCycle(){ editingCycle = true; renderCycle(); }
+
+async function saveCycle(val){
+  editingCycle = false;
+  cycle = val.trim();
+  renderCycle();
+  await db.from('sessao').upsert({ id: SESSAO_ID, cycle: cycle, atualizado_em: new Date().toISOString() });
+}
+
+async function loadSessao(){
+  const { data } = await db.from('sessao').select('*').eq('id', SESSAO_ID).maybeSingle();
+  if(data){
+    if(data.cycle !== undefined && data.cycle !== null) cycle = data.cycle;
+    renderCycle();
+  }
+}
+
+// ── Humor ─────────────────────────────────────────────────────────────────
 function getMeuVotoAtual(){
   if(!meuVotoId) return null;
   const v = humorVotos.find(x => x.id === meuVotoId);
@@ -152,7 +200,6 @@ function getMeuVotoAtual(){
 async function loadHumorVotos(){
   const { data } = await db.from('humor_votos').select('*').eq('sessao_id', SESSAO_ID);
   humorVotos = data || [];
-  // recupera meu voto da sessão anterior (se existir)
   const saved = sessionStorage.getItem('meu_voto_id');
   if(saved && humorVotos.some(x => x.id === saved)) meuVotoId = saved;
   render();
@@ -160,17 +207,15 @@ async function loadHumorVotos(){
 
 async function votarHumor(i){
   if(meuVotoId){
-    // atualiza voto existente
     humorVotos = humorVotos.map(x => x.id === meuVotoId ? {...x, humor: i} : x);
     render();
     await db.from('humor_votos').update({ humor: i }).eq('id', meuVotoId);
   } else {
-    // novo voto
     const { data, error } = await db.from('humor_votos').insert({ sessao_id: SESSAO_ID, humor: i }).select().single();
     if(!error && data){
       meuVotoId = data.id;
       sessionStorage.setItem('meu_voto_id', meuVotoId);
-      humorVotos.push(data);
+      if(!humorVotos.some(x => x.id===data.id)) humorVotos.push(data);
       render();
     }
   }
@@ -178,8 +223,7 @@ async function votarHumor(i){
 
 function calcMedia(){
   if(!humorVotos.length) return null;
-  const sum = humorVotos.reduce((a,v) => a + v.humor, 0);
-  return sum / humorVotos.length;
+  return humorVotos.reduce((a,v) => a + v.humor, 0) / humorVotos.length;
 }
 
 // ── Cards ─────────────────────────────────────────────────────────────────
@@ -221,7 +265,7 @@ function confirmLimpar(){
   overlay.className = 'confirm-overlay';
   overlay.innerHTML = `<div class="confirm-box">
     <h3>Limpar todos os cards?</h3>
-    <p>Apaga todos os cards e votos de humor. Use no início de uma nova retro.</p>
+    <p>Apaga todos os cards, votos de humor e o cycle. Todos os participantes verão o board limpo em tempo real.</p>
     <div class="confirm-actions">
       <button class="btn" onclick="this.closest('.confirm-overlay').remove()">Cancelar</button>
       <button class="btn btn-danger" onclick="limparTudo(this)">Sim, limpar tudo</button>
@@ -234,11 +278,19 @@ async function limparTudo(btn){
   btn.disabled = true; btn.textContent = 'Limpando...';
   await db.from('cards').delete().neq('id','00000000-0000-0000-0000-000000000000');
   await db.from('humor_votos').delete().eq('sessao_id', SESSAO_ID);
-  cards = {mood:[],pride:[],good:[],bad:[],action:[]};
-  humorVotos = []; meuVotoId = null; revealed = false; openCol = null;
-  sessionStorage.removeItem('meu_voto_id');
+  await db.from('sessao').upsert({ id: SESSAO_ID, cycle: '', atualizado_em: new Date().toISOString() });
+  // dispara evento de limpeza para todos os outros navegadores
+  await db.from('eventos').insert({ tipo: 'limpar_tudo' });
+  aplicarLimpeza();
   document.querySelector('.confirm-overlay')?.remove();
-  render(); toast('Board limpo! Pronto para nova retro 🎉');
+  toast('Board limpo! Pronto para nova retro 🎉');
+}
+
+function aplicarLimpeza(){
+  cards = {mood:[],pride:[],good:[],bad:[],action:[]};
+  humorVotos = []; meuVotoId = null; revealed = false; openCol = null; cycle = '';
+  sessionStorage.removeItem('meu_voto_id');
+  render(); renderCycle();
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
@@ -281,11 +333,8 @@ function renderMoodCol(col){
   const cs = cards['mood'];
   const meuVoto = getMeuVotoAtual();
   const media = calcMedia();
-
-  // contagem de votos por emoji
   const contagemPorHumor = [0,0,0,0,0];
   humorVotos.forEach(v => { if(v.humor>=0&&v.humor<=4) contagemPorHumor[v.humor]++; });
-
   const moodBtns = MOODS.map((m,i) => {
     const count = contagemPorHumor[i];
     return `<div class="mood-opt${meuVoto===i?' selected':''}" onclick="votarHumor(${i})">
@@ -294,23 +343,16 @@ function renderMoodCol(col){
       <span class="mood-label">${m.l}</span>
     </div>`;
   }).join('');
-
-  let statsHTML = '';
-  if(humorVotos.length > 0){
-    const mediaIdx = Math.round(media);
-    statsHTML = `<div class="mood-stats">
-      <div class="mood-media">${MOODS[mediaIdx].e} Média: ${MOODS[mediaIdx].l} · ${humorVotos.length} voto${humorVotos.length>1?'s':''}</div>
-      <div class="mood-votos">${humorVotos.map(v=>`<span class="mood-voto-chip">${MOODS[v.humor].e}</span>`).join('')}</div>
-    </div>`;
-  } else {
-    statsHTML = `<div class="mood-hint">ninguém votou ainda</div>`;
-  }
-
+  let statsHTML = humorVotos.length > 0
+    ? `<div class="mood-stats">
+        <div class="mood-media">${MOODS[Math.round(media)].e} Média: ${MOODS[Math.round(media)].l} · ${humorVotos.length} voto${humorVotos.length>1?'s':''}</div>
+        <div class="mood-votos">${humorVotos.map(v=>`<span class="mood-voto-chip">${MOODS[v.humor].e}</span>`).join('')}</div>
+      </div>`
+    : `<div class="mood-hint">ninguém votou ainda</div>`;
   const cardsHTML = revealed
     ? cs.map(c => cardHTML(c,'mood')).join('')
     : (cs.length > 0 ? hiddenBox(cs.length,'mood') : '');
   const addArea = openCol==='mood' ? newCardHTML('mood') : addCardBtnHTML('mood','Adicionar comentário');
-
   return `
     <div class="col-header">
       <span class="col-icon">${col.icon}</span>
@@ -354,7 +396,9 @@ function toggleReveal(){ revealed = !revealed; render(); setStatus(true); }
 function exportBoard(){
   const media = calcMedia();
   const mediaIdx = media !== null ? Math.round(media) : null;
-  let out = 'RETROSPECTIVA — TIME DE PAGAMENTOS\n'+'='.repeat(38)+'\n\n';
+  let out = 'RETROSPECTIVA — TIME DE PAGAMENTOS\n';
+  if(cycle) out += cycle+'\n';
+  out += '='.repeat(38)+'\n\n';
   COLS.forEach(col => {
     out += col.icon+' '+col.title.toUpperCase()+'\n'+'-'.repeat(30)+'\n';
     if(col.id==='mood'){
@@ -380,7 +424,7 @@ document.addEventListener('keydown', e => {
 
 // ── Realtime ──────────────────────────────────────────────────────────────
 function setupRealtime(){
-  db.channel('retro-v5')
+  db.channel('retro-v6')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'cards'}, payload => {
       try {
         const c = payload.new;
@@ -420,6 +464,18 @@ function setupRealtime(){
         humorVotos = humorVotos.filter(x => x.id!==id); render();
       } catch(e){ console.error(e); }
     })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessao'}, payload => {
+      try {
+        const s = payload.new; if(!s||s.id!==SESSAO_ID) return;
+        if(s.cycle !== undefined){ cycle = s.cycle || ''; renderCycle(); }
+      } catch(e){ console.error(e); }
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'eventos'}, payload => {
+      try {
+        const ev = payload.new; if(!ev) return;
+        if(ev.tipo === 'limpar_tudo') aplicarLimpeza();
+      } catch(e){ console.error(e); }
+    })
     .subscribe(status => {
       setStatus(status==='SUBSCRIBED');
       if(status==='CLOSED'||status==='CHANNEL_ERROR') setTimeout(setupRealtime, 3000);
@@ -427,7 +483,9 @@ function setupRealtime(){
 }
 
 render();
+renderCycle();
 loadCards();
+loadSessao();
 loadHumorVotos();
 setupRealtime();
 </script>
