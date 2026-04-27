@@ -8,7 +8,7 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1e1e1e;color:#e8e4de;min-height:100vh}
-  .board{padding:1.5rem;max-width:1400px;margin:0 auto;padding-bottom:5rem}
+  .board{padding:1.5rem;max-width:1400px;margin:0 auto;padding-bottom:8rem;padding-right:calc(1.5rem + 320px)}
   .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
   .header-left .title{font-size:20px;font-weight:600;color:#e8e4de}
   .header-left .subtitle{font-size:13px;color:#888;margin-top:3px;display:flex;align-items:center;gap:5px}
@@ -74,7 +74,7 @@
   .mood-votos{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
   .mood-voto-chip{font-size:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:2px 8px;color:#888}
   .mood-hint{font-size:11px;color:#555;text-align:center;font-style:italic;padding:4px 0}
-  .action-panel{position:fixed;bottom:24px;right:24px;width:320px;background:#1e2430;border-top:3px solid #4a6080;border:1px solid #2a3444;border-top-width:3px;border-top-color:#4a6080;border-radius:14px;box-shadow:0 4px 32px rgba(0,0,0,0.4);z-index:100;display:flex;flex-direction:column}
+  .action-panel{position:fixed;bottom:20px;right:20px;width:300px;max-height:50vh;background:#1e2430;border-top:3px solid #4a6080;border:1px solid #2a3444;border-top-width:3px;border-top-color:#4a6080;border-radius:14px;box-shadow:0 4px 32px rgba(0,0,0,0.4);z-index:100;display:flex;flex-direction:column}
   .action-panel-header{display:flex;align-items:center;gap:7px;padding:12px 14px;cursor:pointer;user-select:none}
   .action-panel-icon{font-size:15px}
   .action-panel-title{font-size:12px;font-weight:600;flex:1;color:#c8c4be}
@@ -135,7 +135,7 @@ const COLS=[
   {id:'mood',cls:'col-mood',icon:'🌡',title:'Como foi o sentimento da sprint?',type:'mood'},
   {id:'pride',cls:'col-pride',icon:'🏆',title:'Mural do orgulho',type:'cards',ph:'O que o time pode se orgulhar?'},
   {id:'good',cls:'col-good',icon:'✅',title:'O que deu bom?',type:'cards',ph:'O que repetimos na proxima sprint?'},
-  {id:'bad',cls:'col-bad',icon:'📌',title:'O que nao deu tao bom?',type:'cards',ph:'O que podemos melhorar?'},
+  {id:'bad',cls:'col-bad',icon:'📌',title:'O que não deu tão bom?',type:'cards',ph:'O que podemos melhorar?'},
 ];
 const MOODS=[{e:'😔',l:'Dificil'},{e:'😕',l:'Abaixo'},{e:'😐',l:'Neutro'},{e:'😊',l:'Foi bem'},{e:'🤩',l:'Incrivel!'}];
 const COL_IDS=[...COLS.map(c=>c.id),'action'];
