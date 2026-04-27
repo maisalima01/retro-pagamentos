@@ -40,8 +40,6 @@
   .del-btn{font-size:11px;color:#ccc;background:none;border:1px solid #eee;border-radius:20px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
   .del-btn:hover{background:#fff0f0;color:#c0392b;border-color:#f5c6c6}
   .hidden-box{background:#f9f9f7;border:1px dashed #ddd;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#aaa;font-style:italic}
-
-  /* card em criação */
   .new-card{background:#fafaf8;border:1px solid #b8d0f5;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;animation:fadeIn 0.15s ease}
   .new-card textarea{font-size:13px;padding:0;border:none;background:transparent;color:#1a1a1a;width:100%;resize:none;height:64px;font-family:inherit;outline:none;line-height:1.5}
   .new-card-footer{display:flex;justify-content:space-between;align-items:center}
@@ -50,20 +48,25 @@
   .btn-enviar{font-size:12px;padding:4px 12px;border-radius:7px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer;font-family:inherit;transition:all 0.15s}
   .btn-enviar:hover{background:#333}
   .btn-enviar:disabled{opacity:0.4;cursor:not-allowed}
-  .btn-cancelar{font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .btn-cancelar{font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid #ddd;background:transparent;color:#888;cursor:pointer;font-family:inherit}
   .btn-cancelar:hover{background:#f0f0ee}
-
-  /* botão adicionar */
   .add-card-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:#999;background:none;border:1px dashed #ddd;border-radius:10px;padding:9px 12px;cursor:pointer;width:100%;transition:all 0.15s;font-family:inherit;margin-top:auto}
   .add-card-btn:hover{border-color:#aaa;color:#555;background:#fafaf8}
 
+  /* humor */
   .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0}
-  .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s}
+  .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s;position:relative}
   .mood-opt:hover{background:#f5f5f3}
   .mood-opt.selected{border-color:#3b7dd8;background:#eef4ff}
   .mood-emoji{font-size:20px}
   .mood-label{font-size:9px;color:#999;text-align:center;line-height:1.2}
-  .mood-result{font-size:12px;color:#888;text-align:center;padding:4px 0;font-style:italic}
+  .mood-badge{position:absolute;top:-5px;right:-4px;background:#3b7dd8;color:#fff;font-size:9px;font-weight:700;border-radius:20px;padding:1px 5px;min-width:16px;text-align:center}
+  .mood-stats{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+  .mood-media{font-size:12px;color:#555;text-align:center;font-weight:500}
+  .mood-votos{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+  .mood-voto-chip{font-size:11px;background:#f5f5f3;border:1px solid #eee;border-radius:20px;padding:2px 8px;color:#666}
+  .mood-hint{font-size:11px;color:#bbb;text-align:center;font-style:italic;padding:4px 0}
+
   .toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
   .toast.show{opacity:1}
   .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
@@ -114,11 +117,12 @@ const MOODS = [
 ];
 const COL_IDS = COLS.map(c => c.id);
 
-let cards    = {mood:[],pride:[],good:[],bad:[],action:[]};
-let liked    = new Set();
-let revealed = false;
-let mood     = null;
-let openCol  = null; // qual coluna está com o card aberto
+let cards      = {mood:[],pride:[],good:[],bad:[],action:[]};
+let liked      = new Set();
+let revealed   = false;
+let openCol    = null;
+let humorVotos = []; // [{id, humor}]
+let meuVotoId  = null; // id do voto desta sessão (localStorage)
 
 function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 
@@ -138,17 +142,44 @@ function setStatus(ok){
     : 'Reconectando...';
 }
 
-// ── Sessão ────────────────────────────────────────────────────────────────
-async function loadSessao(){
-  const { data } = await db.from('sessao').select('*').eq('id', SESSAO_ID).maybeSingle();
-  if(data && data.humor !== null && data.humor !== undefined){
-    mood = data.humor; render();
+// ── Humor por pessoa ──────────────────────────────────────────────────────
+function getMeuVotoAtual(){
+  if(!meuVotoId) return null;
+  const v = humorVotos.find(x => x.id === meuVotoId);
+  return v ? v.humor : null;
+}
+
+async function loadHumorVotos(){
+  const { data } = await db.from('humor_votos').select('*').eq('sessao_id', SESSAO_ID);
+  humorVotos = data || [];
+  // recupera meu voto da sessão anterior (se existir)
+  const saved = sessionStorage.getItem('meu_voto_id');
+  if(saved && humorVotos.some(x => x.id === saved)) meuVotoId = saved;
+  render();
+}
+
+async function votarHumor(i){
+  if(meuVotoId){
+    // atualiza voto existente
+    humorVotos = humorVotos.map(x => x.id === meuVotoId ? {...x, humor: i} : x);
+    render();
+    await db.from('humor_votos').update({ humor: i }).eq('id', meuVotoId);
+  } else {
+    // novo voto
+    const { data, error } = await db.from('humor_votos').insert({ sessao_id: SESSAO_ID, humor: i }).select().single();
+    if(!error && data){
+      meuVotoId = data.id;
+      sessionStorage.setItem('meu_voto_id', meuVotoId);
+      humorVotos.push(data);
+      render();
+    }
   }
 }
 
-async function saveMood(i){
-  mood = i; render();
-  await db.from('sessao').upsert({ id: SESSAO_ID, humor: i, atualizado_em: new Date().toISOString() });
+function calcMedia(){
+  if(!humorVotos.length) return null;
+  const sum = humorVotos.reduce((a,v) => a + v.humor, 0);
+  return sum / humorVotos.length;
 }
 
 // ── Cards ─────────────────────────────────────────────────────────────────
@@ -160,11 +191,7 @@ async function loadCards(){
   render();
 }
 
-function openNewCard(col){
-  openCol = col; render();
-  setTimeout(() => { const el = document.getElementById('new-inp-'+col); if(el) el.focus(); }, 50);
-}
-
+function openNewCard(col){ openCol = col; render(); setTimeout(() => { const el = document.getElementById('new-inp-'+col); if(el) el.focus(); }, 50); }
 function cancelNewCard(){ openCol = null; render(); }
 
 async function submitNewCard(col){
@@ -172,11 +199,9 @@ async function submitNewCard(col){
   if(!el||!el.value.trim()) return;
   const btn = document.getElementById('new-btn-'+col);
   if(btn) btn.disabled = true;
-  const text = el.value.trim();
-  const { error } = await db.from('cards').insert({ coluna: col, texto: text, likes: 0 });
+  const { error } = await db.from('cards').insert({ coluna: col, texto: el.value.trim(), likes: 0 });
   if(error) toast('Erro ao salvar card');
-  openCol = null;
-  render();
+  openCol = null; render();
 }
 
 async function deleteCard(id, col){
@@ -186,40 +211,34 @@ async function deleteCard(id, col){
 }
 
 async function likeCard(id, currentLikes, isLiked, col){
-  if(isLiked){
-    liked.delete(id);
-    await db.from('cards').update({ likes: Math.max(0, currentLikes-1) }).eq('id', id);
-  } else {
-    liked.add(id);
-    await db.from('cards').update({ likes: currentLikes+1 }).eq('id', id);
-  }
+  if(isLiked){ liked.delete(id); await db.from('cards').update({ likes: Math.max(0,currentLikes-1) }).eq('id',id); }
+  else { liked.add(id); await db.from('cards').update({ likes: currentLikes+1 }).eq('id',id); }
 }
 
 // ── Limpar tudo ───────────────────────────────────────────────────────────
 function confirmLimpar(){
   const overlay = document.createElement('div');
   overlay.className = 'confirm-overlay';
-  overlay.innerHTML = `
-    <div class="confirm-box">
-      <h3>Limpar todos os cards?</h3>
-      <p>Isso vai apagar todos os cards e o humor da sessão. Use no início de uma nova retro.</p>
-      <div class="confirm-actions">
-        <button class="btn" onclick="this.closest('.confirm-overlay').remove()">Cancelar</button>
-        <button class="btn btn-danger" onclick="limparTudo(this)">Sim, limpar tudo</button>
-      </div>
-    </div>`;
+  overlay.innerHTML = `<div class="confirm-box">
+    <h3>Limpar todos os cards?</h3>
+    <p>Apaga todos os cards e votos de humor. Use no início de uma nova retro.</p>
+    <div class="confirm-actions">
+      <button class="btn" onclick="this.closest('.confirm-overlay').remove()">Cancelar</button>
+      <button class="btn btn-danger" onclick="limparTudo(this)">Sim, limpar tudo</button>
+    </div>
+  </div>`;
   document.body.appendChild(overlay);
 }
 
 async function limparTudo(btn){
   btn.disabled = true; btn.textContent = 'Limpando...';
-  await db.from('cards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  await db.from('sessao').delete().eq('id', SESSAO_ID);
+  await db.from('cards').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  await db.from('humor_votos').delete().eq('sessao_id', SESSAO_ID);
   cards = {mood:[],pride:[],good:[],bad:[],action:[]};
-  mood = null; revealed = false; openCol = null;
+  humorVotos = []; meuVotoId = null; revealed = false; openCol = null;
+  sessionStorage.removeItem('meu_voto_id');
   document.querySelector('.confirm-overlay')?.remove();
-  render();
-  toast('Board limpo! Pronto para nova retro 🎉');
+  render(); toast('Board limpo! Pronto para nova retro 🎉');
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
@@ -241,7 +260,7 @@ function newCardHTML(col){
   return `<div class="new-card">
     <textarea id="new-inp-${col}" placeholder="Escreva seu card..." rows="3"></textarea>
     <div class="new-card-footer">
-      <span class="new-card-hint">anônimo · Ctrl+Enter para enviar</span>
+      <span class="new-card-hint">anônimo · Ctrl+Enter envia</span>
       <div class="new-card-actions">
         <button class="btn-cancelar" onclick="cancelNewCard()">Cancelar</button>
         <button class="btn-enviar" id="new-btn-${col}" onclick="submitNewCard('${col}')">Enviar</button>
@@ -260,26 +279,46 @@ function hiddenBox(n, type){
 
 function renderMoodCol(col){
   const cs = cards['mood'];
-  const moodBtns = MOODS.map((m,i) =>
-    `<div class="mood-opt${mood===i?' selected':''}" onclick="saveMood(${i})">
+  const meuVoto = getMeuVotoAtual();
+  const media = calcMedia();
+
+  // contagem de votos por emoji
+  const contagemPorHumor = [0,0,0,0,0];
+  humorVotos.forEach(v => { if(v.humor>=0&&v.humor<=4) contagemPorHumor[v.humor]++; });
+
+  const moodBtns = MOODS.map((m,i) => {
+    const count = contagemPorHumor[i];
+    return `<div class="mood-opt${meuVoto===i?' selected':''}" onclick="votarHumor(${i})">
+      ${count>0?`<span class="mood-badge">${count}</span>`:''}
       <span class="mood-emoji">${m.e}</span>
       <span class="mood-label">${m.l}</span>
-    </div>`).join('');
-  const result = mood !== null
-    ? `<div class="mood-result">${MOODS[mood].e} ${MOODS[mood].l}</div>`
-    : `<div class="mood-result">clique para votar</div>`;
+    </div>`;
+  }).join('');
+
+  let statsHTML = '';
+  if(humorVotos.length > 0){
+    const mediaIdx = Math.round(media);
+    statsHTML = `<div class="mood-stats">
+      <div class="mood-media">${MOODS[mediaIdx].e} Média: ${MOODS[mediaIdx].l} · ${humorVotos.length} voto${humorVotos.length>1?'s':''}</div>
+      <div class="mood-votos">${humorVotos.map(v=>`<span class="mood-voto-chip">${MOODS[v.humor].e}</span>`).join('')}</div>
+    </div>`;
+  } else {
+    statsHTML = `<div class="mood-hint">ninguém votou ainda</div>`;
+  }
+
   const cardsHTML = revealed
     ? cs.map(c => cardHTML(c,'mood')).join('')
     : (cs.length > 0 ? hiddenBox(cs.length,'mood') : '');
   const addArea = openCol==='mood' ? newCardHTML('mood') : addCardBtnHTML('mood','Adicionar comentário');
+
   return `
     <div class="col-header">
       <span class="col-icon">${col.icon}</span>
       <span class="col-title">${col.title}</span>
-      <span class="col-count">${cs.length}</span>
+      <span class="col-count">${humorVotos.length}</span>
     </div>
     <div class="mood-grid">${moodBtns}</div>
-    ${result}
+    ${statsHTML}
     <div class="cards-area">${cardsHTML}</div>
     ${addArea}`;
 }
@@ -313,10 +352,17 @@ function render(){
 function toggleReveal(){ revealed = !revealed; render(); setStatus(true); }
 
 function exportBoard(){
+  const media = calcMedia();
+  const mediaIdx = media !== null ? Math.round(media) : null;
   let out = 'RETROSPECTIVA — TIME DE PAGAMENTOS\n'+'='.repeat(38)+'\n\n';
   COLS.forEach(col => {
     out += col.icon+' '+col.title.toUpperCase()+'\n'+'-'.repeat(30)+'\n';
-    if(col.id==='mood'&&mood!==null) out += 'Humor: '+MOODS[mood].e+' '+MOODS[mood].l+'\n';
+    if(col.id==='mood'){
+      if(humorVotos.length>0){
+        out += 'Votos: '+humorVotos.map(v=>MOODS[v.humor].e+' '+MOODS[v.humor].l).join(', ')+'\n';
+        if(mediaIdx!==null) out += 'Média: '+MOODS[mediaIdx].e+' '+MOODS[mediaIdx].l+'\n';
+      }
+    }
     (cards[col.id]||[]).forEach((c,i) =>
       out += (i+1)+'. '+c.texto+(c.likes>0?' ('+c.likes+' votos)':'')+'\n'
     );
@@ -328,45 +374,51 @@ function exportBoard(){
 }
 
 document.addEventListener('keydown', e => {
-  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&openCol){
-    submitNewCard(openCol);
-  }
-  if(e.key==='Escape'&&openCol){ cancelNewCard(); }
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&openCol) submitNewCard(openCol);
+  if(e.key==='Escape'&&openCol) cancelNewCard();
 });
 
 // ── Realtime ──────────────────────────────────────────────────────────────
 function setupRealtime(){
-  db.channel('retro-v4')
+  db.channel('retro-v5')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'cards'}, payload => {
       try {
         const c = payload.new;
         if(!c||!c.coluna||!COL_IDS.includes(c.coluna)) return;
         if(cards[c.coluna].some(x => x.id===c.id)) return;
-        cards[c.coluna].push(c);
-        render();
-      } catch(err){ console.error(err); }
+        cards[c.coluna].push(c); render();
+      } catch(e){ console.error(e); }
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'cards'}, payload => {
       try {
         const c = payload.new;
         if(!c||!c.coluna||!COL_IDS.includes(c.coluna)) return;
-        cards[c.coluna] = cards[c.coluna].map(x => x.id===c.id ? c : x);
-        render();
-      } catch(err){ console.error(err); }
+        cards[c.coluna] = cards[c.coluna].map(x => x.id===c.id ? c : x); render();
+      } catch(e){ console.error(e); }
     })
     .on('postgres_changes',{event:'DELETE',schema:'public',table:'cards'}, payload => {
       try {
-        const id = payload.old?.id;
-        if(!id) return;
-        COL_IDS.forEach(col => { cards[col] = cards[col].filter(x => x.id!==id); });
-        render();
-      } catch(err){ console.error(err); }
+        const id = payload.old?.id; if(!id) return;
+        COL_IDS.forEach(col => { cards[col] = cards[col].filter(x => x.id!==id); }); render();
+      } catch(e){ console.error(e); }
     })
-    .on('postgres_changes',{event:'*',schema:'public',table:'sessao'}, payload => {
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'humor_votos'}, payload => {
       try {
-        const s = payload.new;
-        if(s&&s.id===SESSAO_ID&&s.humor!==undefined){ mood = s.humor; render(); }
-      } catch(err){ console.error(err); }
+        const v = payload.new; if(!v||v.sessao_id!==SESSAO_ID) return;
+        if(!humorVotos.some(x => x.id===v.id)) humorVotos.push(v); render();
+      } catch(e){ console.error(e); }
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'humor_votos'}, payload => {
+      try {
+        const v = payload.new; if(!v||v.sessao_id!==SESSAO_ID) return;
+        humorVotos = humorVotos.map(x => x.id===v.id ? v : x); render();
+      } catch(e){ console.error(e); }
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'humor_votos'}, payload => {
+      try {
+        const id = payload.old?.id; if(!id) return;
+        humorVotos = humorVotos.filter(x => x.id!==id); render();
+      } catch(e){ console.error(e); }
     })
     .subscribe(status => {
       setStatus(status==='SUBSCRIBED');
@@ -376,7 +428,7 @@ function setupRealtime(){
 
 render();
 loadCards();
-loadSessao();
+loadHumorVotos();
 setupRealtime();
 </script>
 </body>
