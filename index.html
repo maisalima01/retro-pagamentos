@@ -9,20 +9,16 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1e1e1e;color:#e8e4de;min-height:100vh}
   .board{padding:1.5rem;max-width:1400px;margin:0 auto;padding-bottom:5rem}
-
-  /* header */
   .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
   .header-left .title{font-size:20px;font-weight:600;color:#e8e4de}
   .header-left .subtitle{font-size:13px;color:#888;margin-top:3px;display:flex;align-items:center;gap:5px}
   .status-dot{width:7px;height:7px;border-radius:50%;background:#444;display:inline-block;flex-shrink:0;transition:background 0.3s}
   .status-dot.connected{background:#6a9e7f}
   .cycle-row{display:flex;align-items:center;gap:6px;margin-top:5px}
-  .cycle-display{font-size:13px;color:#aaa;font-weight:500;cursor:pointer;border-bottom:1px dashed #444;padding-bottom:1px;transition:color 0.15s}
+  .cycle-display{font-size:13px;color:#aaa;font-weight:500;cursor:pointer;border-bottom:1px dashed #444;padding-bottom:1px}
   .cycle-display:hover{color:#e8e4de;border-bottom-color:#888}
   .cycle-input{font-size:13px;color:#e8e4de;border:none;border-bottom:1.5px solid #5b7fa6;background:transparent;outline:none;width:200px;font-family:inherit;padding-bottom:1px}
   .cycle-hint{font-size:11px;color:#555}
-
-  /* botões */
   .actions{display:flex;gap:8px;flex-wrap:wrap}
   .btn{font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #333;background:#2a2a2a;color:#ccc;cursor:pointer;transition:all 0.15s;font-weight:500}
   .btn:hover{background:#333;color:#e8e4de}
@@ -30,27 +26,19 @@
   .btn-reveal:hover{background:#fff;color:#1e1e1e}
   .btn-danger{border-color:#5a2a2a;color:#c07070}
   .btn-danger:hover{background:#2e1a1a;color:#e08080}
-
-  /* 4 colunas */
   .columns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
   @media(max-width:800px){.columns{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:480px){.columns{grid-template-columns:1fr}}
-
-  .col{border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:380px;border-top-width:3px;border-top-style:solid;border-right:1px solid;border-bottom:1px solid;border-left:1px solid;}
-
-  /* cores psicológicas adaptadas ao dark */
-  .col-mood  {background:#242218;border-color:#b8923a;border-right-color:#2e2a1e;border-bottom-color:#2e2a1e;border-left-color:#2e2a1e;}
-  .col-pride {background:#1a2420;border-color:#4e7a60;border-right-color:#1e2e28;border-bottom-color:#1e2e28;border-left-color:#1e2e28;}
-  .col-good  {background:#1a2030;border-color:#3d6080;border-right-color:#1e2838;border-bottom-color:#1e2838;border-left-color:#1e2838;}
-  .col-bad   {background:#221e2c;border-color:#6a5a88;border-right-color:#2a2234;border-bottom-color:#2a2234;border-left-color:#2a2234;}
-
+  .col{border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:380px;border-top-width:3px;border-top-style:solid;border-right:1px solid;border-bottom:1px solid;border-left:1px solid}
+  .col-mood{background:#242218;border-color:#b8923a;border-right-color:#2e2a1e;border-bottom-color:#2e2a1e;border-left-color:#2e2a1e}
+  .col-pride{background:#1a2420;border-color:#4e7a60;border-right-color:#1e2e28;border-bottom-color:#1e2e28;border-left-color:#1e2e28}
+  .col-good{background:#1a2030;border-color:#3d6080;border-right-color:#1e2838;border-bottom-color:#1e2838;border-left-color:#1e2838}
+  .col-bad{background:#221e2c;border-color:#6a5a88;border-right-color:#2a2234;border-bottom-color:#2a2234;border-left-color:#2a2234}
   .col-header{display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:2px}
   .col-icon{font-size:16px}
   .col-title{font-size:12px;font-weight:600;flex:1;line-height:1.3;color:#d8d4ce}
   .col-count{font-size:11px;color:#666;background:rgba(255,255,255,0.06);border-radius:20px;padding:2px 8px;border:1px solid rgba(255,255,255,0.08)}
   .cards-area{display:flex;flex-direction:column;gap:7px;flex:1}
-
-  /* cards */
   .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5;animation:fadeIn 0.2s ease;color:#d8d4ce}
   @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:6px}
@@ -61,8 +49,6 @@
   .del-btn{font-size:11px;color:#444;background:none;border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:2px 8px;cursor:pointer;transition:all 0.15s}
   .del-btn:hover{background:rgba(160,48,48,0.2);color:#c07070;border-color:#5a2a2a}
   .hidden-box{background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#555;font-style:italic}
-
-  /* novo card */
   .new-card{background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;animation:fadeIn 0.15s ease}
   .new-card textarea{font-size:13px;padding:0;border:none;background:transparent;color:#e8e4de;width:100%;resize:none;height:64px;font-family:inherit;outline:none;line-height:1.5}
   .new-card textarea::placeholder{color:#555}
@@ -76,8 +62,6 @@
   .btn-cancelar:hover{background:#2a2a2a;color:#ccc}
   .add-card-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;padding:9px 12px;cursor:pointer;width:100%;transition:all 0.15s;font-family:inherit;margin-top:auto}
   .add-card-btn:hover{background:rgba(255,255,255,0.07);color:#aaa;border-color:rgba(255,255,255,0.2)}
-
-  /* humor */
   .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:4px 0}
   .mood-opt{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 4px;border-radius:9px;border:1.5px solid transparent;transition:all 0.15s;position:relative}
   .mood-opt:hover{background:rgba(255,255,255,0.07)}
@@ -90,8 +74,6 @@
   .mood-votos{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
   .mood-voto-chip{font-size:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:2px 8px;color:#888}
   .mood-hint{font-size:11px;color:#555;text-align:center;font-style:italic;padding:4px 0}
-
-  /* painel de ações */
   .action-panel{position:fixed;bottom:24px;right:24px;width:320px;background:#1e2430;border-top:3px solid #4a6080;border:1px solid #2a3444;border-top-width:3px;border-top-color:#4a6080;border-radius:14px;box-shadow:0 4px 32px rgba(0,0,0,0.4);z-index:100;display:flex;flex-direction:column}
   .action-panel-header{display:flex;align-items:center;gap:7px;padding:12px 14px;cursor:pointer;user-select:none}
   .action-panel-icon{font-size:15px}
@@ -104,14 +86,16 @@
   .action-panel .card{background:rgba(255,255,255,0.05)}
   .action-panel .add-card-btn{background:rgba(255,255,255,0.03)}
   .action-panel .new-card{background:rgba(255,255,255,0.07)}
-
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#e8e4de;color:#1e1e1e;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200}
   .toast.show{opacity:1}
   .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1000}
   .confirm-box{background:#242424;border:1px solid #333;border-radius:14px;padding:24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
   .confirm-box h3{font-size:16px;margin-bottom:8px;color:#e8e4de}
-  .confirm-box p{font-size:13px;color:#888;margin-bottom:20px}
+  .confirm-box p{font-size:13px;color:#888;margin-bottom:16px}
   .confirm-actions{display:flex;gap:8px;justify-content:center}
+  .pin-input{font-size:22px;letter-spacing:10px;text-align:center;width:130px;padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#e8e4de;outline:none;font-family:monospace;margin:0 auto 6px;display:block}
+  .pin-input:focus{border-color:#5b7fa6}
+  .pin-error{font-size:12px;color:#c07070;text-align:center;min-height:18px;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -119,413 +103,158 @@
   <div class="header">
     <div class="header-left">
       <div class="title">Retro — Time de Pagamentos</div>
-      <div class="subtitle">
-        <span class="status-dot" id="dot"></span>
-        <span id="subtitle">Conectando...</span>
-      </div>
-      <div class="cycle-row" id="cycle-row">
-        <span class="cycle-display" id="cycle-display" onclick="editCycle()">+ Adicionar cycle da sprint</span>
-      </div>
+      <div class="subtitle"><span class="status-dot" id="dot"></span><span id="subtitle">Conectando...</span></div>
+      <div class="cycle-row" id="cycle-row"><span class="cycle-display" id="cycle-display" onclick="editCycle()">+ Adicionar cycle da sprint</span></div>
     </div>
     <div class="actions">
-      <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">👁 Revelar cards</button>
-      <button class="btn btn-danger" onclick="confirmLimpar()">🗑 Limpar tudo</button>
-      <button class="btn" onclick="exportBoard()">↓ Exportar</button>
+      <button class="btn btn-reveal" id="reveal-btn" onclick="toggleReveal()">&#128065; Revelar cards</button>
+      <button class="btn btn-danger" onclick="confirmLimpar()">&#128465; Limpar tudo</button>
+      <button class="btn" onclick="exportBoard()">&#8595; Exportar</button>
     </div>
   </div>
   <div class="columns" id="board"></div>
 </div>
-
 <div class="action-panel" id="action-panel">
   <div class="action-panel-header" onclick="toggleActionPanel()">
-    <span class="action-panel-icon">🚀</span>
+    <span class="action-panel-icon">&#128640;</span>
     <span class="action-panel-title">Ação da retro</span>
     <span class="action-panel-count" id="action-count">0</span>
-    <span class="action-panel-toggle open" id="action-toggle">▼</span>
+    <span class="action-panel-toggle open" id="action-toggle">&#9660;</span>
   </div>
   <div class="action-panel-body" id="action-body"></div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-const SUPABASE_URL = 'https://nibdavavuzudwbxmrzbb.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmRhdmF2dXp1ZHdieG1yemJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNDI4NTUsImV4cCI6MjA5MjcxODg1NX0.jlGWrHmpzCtQ5BpQrJn5faC3gSC24ixUMAkql-gayAo';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY, { realtime: { params: { eventsPerSecond: 10 } } });
-
-const SESSAO_ID = 'retro-pagamentos';
-const COLS = [
-  {id:'mood',  cls:'col-mood',  icon:'🌡', title:'Como foi o sentimento da sprint?', type:'mood'},
-  {id:'pride', cls:'col-pride', icon:'🏆', title:'Mural do orgulho',                 type:'cards', ph:'O que o time pode se orgulhar?'},
-  {id:'good',  cls:'col-good',  icon:'✅', title:'O que deu bom?',                   type:'cards', ph:'O que repetimos na próxima sprint?'},
-  {id:'bad',   cls:'col-bad',   icon:'📌', title:'O que não deu tão bom?',           type:'cards', ph:'O que podemos melhorar?'},
+const SUPABASE_URL='https://nibdavavuzudwbxmrzbb.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmRhdmF2dXp1ZHdieG1yemJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNDI4NTUsImV4cCI6MjA5MjcxODg1NX0.jlGWrHmpzCtQ5BpQrJn5faC3gSC24ixUMAkql-gayAo';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY,{realtime:{params:{eventsPerSecond:10}}});
+const SESSAO_ID='retro-pagamentos';
+const SENHA='2558';
+const COLS=[
+  {id:'mood',cls:'col-mood',icon:'&#127777;',title:'Como foi o sentimento da sprint?',type:'mood'},
+  {id:'pride',cls:'col-pride',icon:'&#127942;',title:'Mural do orgulho',type:'cards',ph:'O que o time pode se orgulhar?'},
+  {id:'good',cls:'col-good',icon:'&#9989;',title:'O que deu bom?',type:'cards',ph:'O que repetimos na proxima sprint?'},
+  {id:'bad',cls:'col-bad',icon:'&#128204;',title:'O que nao deu tao bom?',type:'cards',ph:'O que podemos melhorar?'},
 ];
-const MOODS = [
-  {e:'😔',l:'Difícil'},{e:'😕',l:'Abaixo'},{e:'😐',l:'Neutro'},{e:'😊',l:'Foi bem'},{e:'🤩',l:'Incrível!'}
-];
-const COL_IDS = [...COLS.map(c => c.id), 'action'];
-
+const MOODS=[{e:'&#128532;',l:'Dificil'},{e:'&#128533;',l:'Abaixo'},{e:'&#128528;',l:'Neutro'},{e:'&#128522;',l:'Foi bem'},{e:'&#129321;',l:'Incrivel!'}];
+const COL_IDS=[...COLS.map(c=>c.id),'action'];
 let cards={mood:[],pride:[],good:[],bad:[],action:[]};
-let liked=new Set();
-let revealed=false;
-let openCol=null;
-let humorVotos=[];
-let meuVotoId=null;
-let cycle='';
-let editingCycle=false;
-let actionPanelOpen=true;
+let liked=new Set(),revealed=false,openCol=null,humorVotos=[],meuVotoId=null,cycle='',editingCycle=false,actionPanelOpen=true;
 
 function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+function setStatus(ok){const dot=document.getElementById('dot'),sub=document.getElementById('subtitle');if(!dot||!sub)return;dot.className='status-dot'+(ok?' connected':'');sub.textContent=ok?(revealed?'Cards visiveis':'Cards anonimos'):'Reconectando...';}
+function updateSubtitle(){const sub=document.getElementById('subtitle');if(sub&&sub.textContent!=='Reconectando...')sub.textContent=revealed?'Cards visiveis':'Cards anonimos';}
+function toggleActionPanel(){actionPanelOpen=!actionPanelOpen;const body=document.getElementById('action-body'),toggle=document.getElementById('action-toggle');if(body)body.className='action-panel-body'+(actionPanelOpen?'':' collapsed');if(toggle)toggle.className='action-panel-toggle'+(actionPanelOpen?' open':'');}
 
-function toast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2500);
-}
-
-function setStatus(ok){
-  const dot=document.getElementById('dot');
-  const sub=document.getElementById('subtitle');
-  if(!dot||!sub)return;
-  dot.className='status-dot'+(ok?' connected':'');
-  sub.textContent=ok?(revealed?'Cards visíveis':'Cards anônimos'):'Reconectando...';
-}
-
-function updateSubtitle(){
-  const sub=document.getElementById('subtitle');
-  if(sub&&sub.textContent!=='Reconectando...')
-    sub.textContent=revealed?'Cards visíveis':'Cards anônimos';
-}
-
-function toggleActionPanel(){
-  actionPanelOpen=!actionPanelOpen;
-  const body=document.getElementById('action-body');
-  const toggle=document.getElementById('action-toggle');
-  if(body)body.className='action-panel-body'+(actionPanelOpen?'':' collapsed');
-  if(toggle)toggle.className='action-panel-toggle'+(actionPanelOpen?' open':'');
-}
-
-// ── Cycle ──────────────────────────────────────────────────────────────────
 function renderCycle(){
-  const row=document.getElementById('cycle-row');
-  if(!row)return;
+  const row=document.getElementById('cycle-row');if(!row)return;
   if(editingCycle){
-    row.innerHTML=`<input class="cycle-input" id="cycle-input" type="text" value="${esc(cycle)}" placeholder="Ex: Cycle 12 · Sprint 24" maxlength="60"/>
-      <span class="cycle-hint">Enter para salvar · Esc para cancelar</span>`;
+    row.innerHTML='<input class="cycle-input" id="cycle-input" type="text" value="'+esc(cycle)+'" placeholder="Ex: Cycle 12 Sprint 24" maxlength="60"/><span class="cycle-hint">Enter para salvar Esc para cancelar</span>';
     const inp=document.getElementById('cycle-input');
-    if(inp){
-      inp.focus();inp.select();
-      inp.addEventListener('keydown',e=>{
-        if(e.key==='Enter')saveCycle(inp.value);
-        if(e.key==='Escape'){editingCycle=false;renderCycle();}
-      });
-      inp.addEventListener('blur',()=>{if(editingCycle)saveCycle(inp.value);});
-    }
-  }else{
-    row.innerHTML=`<span class="cycle-display" id="cycle-display" onclick="editCycle()">${cycle?'📅 '+esc(cycle):'+ Adicionar cycle da sprint'}</span>`;
-  }
+    if(inp){inp.focus();inp.select();inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveCycle(inp.value);if(e.key==='Escape'){editingCycle=false;renderCycle();}});inp.addEventListener('blur',()=>{if(editingCycle)saveCycle(inp.value);});}
+  }else{row.innerHTML='<span class="cycle-display" id="cycle-display" onclick="editCycle()">'+(cycle?'&#128197; '+esc(cycle):'+ Adicionar cycle da sprint')+'</span>';}
 }
-
 function editCycle(){editingCycle=true;renderCycle();}
+async function saveCycle(val){editingCycle=false;cycle=val.trim();renderCycle();await db.from('sessao').upsert({id:SESSAO_ID,cycle:cycle,atualizado_em:new Date().toISOString()});}
+async function loadSessao(){const{data}=await db.from('sessao').select('*').eq('id',SESSAO_ID).maybeSingle();if(data){if(data.cycle!=null)cycle=data.cycle;if(data.revelado!=null)revealed=data.revelado;renderCycle();render();updateSubtitle();}}
 
-async function saveCycle(val){
-  editingCycle=false;cycle=val.trim();renderCycle();
-  await db.from('sessao').upsert({id:SESSAO_ID,cycle:cycle,atualizado_em:new Date().toISOString()});
-}
+function getMeuVotoAtual(){if(!meuVotoId)return null;const v=humorVotos.find(x=>x.id===meuVotoId);return v?v.humor:null;}
+async function loadHumorVotos(){const{data}=await db.from('humor_votos').select('*').eq('sessao_id',SESSAO_ID);humorVotos=data||[];const saved=sessionStorage.getItem('meu_voto_id');if(saved&&humorVotos.some(x=>x.id===saved))meuVotoId=saved;render();}
+async function votarHumor(i){if(meuVotoId){humorVotos=humorVotos.map(x=>x.id===meuVotoId?{...x,humor:i}:x);render();await db.from('humor_votos').update({humor:i}).eq('id',meuVotoId);}else{const{data,error}=await db.from('humor_votos').insert({sessao_id:SESSAO_ID,humor:i}).select().single();if(!error&&data){meuVotoId=data.id;sessionStorage.setItem('meu_voto_id',meuVotoId);if(!humorVotos.some(x=>x.id===data.id))humorVotos.push(data);render();}}}
+function calcMedia(){if(!humorVotos.length)return null;return humorVotos.reduce((a,v)=>a+v.humor,0)/humorVotos.length;}
 
-async function loadSessao(){
-  const{data}=await db.from('sessao').select('*').eq('id',SESSAO_ID).maybeSingle();
-  if(data){
-    if(data.cycle!=null)cycle=data.cycle;
-    if(data.revelado!=null)revealed=data.revelado;
-    renderCycle();render();updateSubtitle();
-  }
-}
-
-// ── Humor ──────────────────────────────────────────────────────────────────
-function getMeuVotoAtual(){
-  if(!meuVotoId)return null;
-  const v=humorVotos.find(x=>x.id===meuVotoId);
-  return v?v.humor:null;
-}
-
-async function loadHumorVotos(){
-  const{data}=await db.from('humor_votos').select('*').eq('sessao_id',SESSAO_ID);
-  humorVotos=data||[];
-  const saved=sessionStorage.getItem('meu_voto_id');
-  if(saved&&humorVotos.some(x=>x.id===saved))meuVotoId=saved;
-  render();
-}
-
-async function votarHumor(i){
-  if(meuVotoId){
-    humorVotos=humorVotos.map(x=>x.id===meuVotoId?{...x,humor:i}:x);
-    render();
-    await db.from('humor_votos').update({humor:i}).eq('id',meuVotoId);
-  }else{
-    const{data,error}=await db.from('humor_votos').insert({sessao_id:SESSAO_ID,humor:i}).select().single();
-    if(!error&&data){
-      meuVotoId=data.id;
-      sessionStorage.setItem('meu_voto_id',meuVotoId);
-      if(!humorVotos.some(x=>x.id===data.id))humorVotos.push(data);
-      render();
-    }
-  }
-}
-
-function calcMedia(){
-  if(!humorVotos.length)return null;
-  return humorVotos.reduce((a,v)=>a+v.humor,0)/humorVotos.length;
-}
-
-// ── Cards ──────────────────────────────────────────────────────────────────
-async function loadCards(){
-  const{data,error}=await db.from('cards').select('*').order('criado_em',{ascending:true});
-  if(error){toast('Erro ao carregar');return;}
-  cards={mood:[],pride:[],good:[],bad:[],action:[]};
-  (data||[]).forEach(c=>{if(COL_IDS.includes(c.coluna))cards[c.coluna].push(c);});
-  render();
-}
-
+async function loadCards(){const{data,error}=await db.from('cards').select('*').order('criado_em',{ascending:true});if(error){toast('Erro ao carregar');return;}cards={mood:[],pride:[],good:[],bad:[],action:[]};(data||[]).forEach(c=>{if(COL_IDS.includes(c.coluna))cards[c.coluna].push(c);});render();}
 function openNewCard(col){openCol=col;render();renderActionPanel();setTimeout(()=>{const el=document.getElementById('new-inp-'+col);if(el)el.focus();},50);}
 function cancelNewCard(){openCol=null;render();renderActionPanel();}
-
-async function submitNewCard(col){
-  const el=document.getElementById('new-inp-'+col);
-  if(!el||!el.value.trim())return;
-  const btn=document.getElementById('new-btn-'+col);
-  if(btn)btn.disabled=true;
-  const{error}=await db.from('cards').insert({coluna:col,texto:el.value.trim(),likes:0});
-  if(error)toast('Erro ao salvar card');
-  openCol=null;render();renderActionPanel();
-}
-
-async function deleteCard(id,col){
-  cards[col]=cards[col].filter(c=>c.id!==id);
-  render();renderActionPanel();
-  await db.from('cards').delete().eq('id',id);
-}
-
-async function likeCard(id,currentLikes,isLiked,col){
-  if(isLiked){liked.delete(id);await db.from('cards').update({likes:Math.max(0,currentLikes-1)}).eq('id',id);}
-  else{liked.add(id);await db.from('cards').update({likes:currentLikes+1}).eq('id',id);}
-}
-
-async function toggleReveal(){
-  revealed=!revealed;render();renderActionPanel();updateSubtitle();
-  await db.from('eventos').insert({tipo:revealed?'revelar':'ocultar'});
-  await db.from('sessao').upsert({id:SESSAO_ID,revelado:revealed,atualizado_em:new Date().toISOString()});
-}
+async function submitNewCard(col){const el=document.getElementById('new-inp-'+col);if(!el||!el.value.trim())return;const btn=document.getElementById('new-btn-'+col);if(btn)btn.disabled=true;const{error}=await db.from('cards').insert({coluna:col,texto:el.value.trim(),likes:0});if(error)toast('Erro ao salvar card');openCol=null;render();renderActionPanel();}
+async function deleteCard(id,col){cards[col]=cards[col].filter(c=>c.id!==id);render();renderActionPanel();await db.from('cards').delete().eq('id',id);}
+async function likeCard(id,currentLikes,isLiked,col){if(isLiked){liked.delete(id);await db.from('cards').update({likes:Math.max(0,currentLikes-1)}).eq('id',id);}else{liked.add(id);await db.from('cards').update({likes:currentLikes+1}).eq('id',id);}}
+async function toggleReveal(){revealed=!revealed;render();renderActionPanel();updateSubtitle();await db.from('eventos').insert({tipo:revealed?'revelar':'ocultar'});await db.from('sessao').upsert({id:SESSAO_ID,revelado:revealed,atualizado_em:new Date().toISOString()});}
 
 function confirmLimpar(){
-  const overlay=document.createElement('div');
-  overlay.className='confirm-overlay';
-  overlay.innerHTML=`<div class="confirm-box">
-    <h3>Limpar todos os cards?</h3>
-    <p>Apaga todos os cards, votos de humor e o cycle. Todos verão o board limpo em tempo real.</p>
-    <div class="confirm-actions">
-      <button class="btn" onclick="this.closest('.confirm-overlay').remove()">Cancelar</button>
-      <button class="btn btn-danger" onclick="limparTudo(this)">Sim, limpar tudo</button>
-    </div>
-  </div>`;
-  document.body.appendChild(overlay);
+  const o=document.createElement('div');o.className='confirm-overlay';
+  o.innerHTML='<div class="confirm-box"><h3>Limpar todos os cards?</h3><p>Digite a senha de proprietario para confirmar.</p><input class="pin-input" id="pin-input" type="password" maxlength="4" placeholder="&bull;&bull;&bull;&bull;"/><div class="pin-error" id="pin-error"></div><div class="confirm-actions"><button class="btn" onclick="this.closest(\'.confirm-overlay\').remove()">Cancelar</button><button class="btn btn-danger" onclick="verificarSenha()">Confirmar</button></div></div>';
+  document.body.appendChild(o);
+  setTimeout(()=>{const inp=document.getElementById('pin-input');if(inp){inp.focus();inp.addEventListener('keydown',e=>{if(e.key==='Enter')verificarSenha();});}},50);
 }
-
-async function limparTudo(btn){
-  btn.disabled=true;btn.textContent='Limpando...';
+function verificarSenha(){
+  const inp=document.getElementById('pin-input'),err=document.getElementById('pin-error');
+  if(!inp)return;
+  if(inp.value===SENHA){limparTudo();}
+  else{if(err)err.textContent='Senha incorreta. Tente novamente.';inp.value='';inp.focus();}
+}
+async function limparTudo(){
   await db.from('cards').delete().neq('id','00000000-0000-0000-0000-000000000000');
   await db.from('humor_votos').delete().eq('sessao_id',SESSAO_ID);
   await db.from('sessao').upsert({id:SESSAO_ID,cycle:'',revelado:false,atualizado_em:new Date().toISOString()});
   await db.from('eventos').insert({tipo:'limpar_tudo'});
   aplicarLimpeza();
   document.querySelector('.confirm-overlay')?.remove();
-  toast('Board limpo! Pronto para nova retro 🎉');
+  toast('Board limpo! Pronto para nova retro');
 }
+function aplicarLimpeza(){cards={mood:[],pride:[],good:[],bad:[],action:[]};humorVotos=[];meuVotoId=null;revealed=false;openCol=null;cycle='';sessionStorage.removeItem('meu_voto_id');render();renderActionPanel();renderCycle();updateSubtitle();}
 
-function aplicarLimpeza(){
-  cards={mood:[],pride:[],good:[],bad:[],action:[]};
-  humorVotos=[];meuVotoId=null;revealed=false;openCol=null;cycle='';
-  sessionStorage.removeItem('meu_voto_id');
-  render();renderActionPanel();renderCycle();updateSubtitle();
-}
-
-// ── Render ─────────────────────────────────────────────────────────────────
-function cardHTML(c,colId){
-  const isLiked=liked.has(c.id);
-  return`<div class="card">
-    <span>${esc(c.texto)}</span>
-    <div class="card-footer">
-      <span class="card-anon">anônimo</span>
-      <div class="card-actions">
-        <button class="like-btn${isLiked?' liked':''}" onclick="likeCard('${c.id}',${c.likes},${isLiked},'${colId}')">+1${c.likes>0?' · '+c.likes:''}</button>
-        <button class="del-btn" onclick="deleteCard('${c.id}','${colId}')" title="Deletar">✕</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function newCardHTML(col){
-  return`<div class="new-card">
-    <textarea id="new-inp-${col}" placeholder="Escreva seu card..." rows="3"></textarea>
-    <div class="new-card-footer">
-      <span class="new-card-hint">anônimo · Ctrl+Enter envia</span>
-      <div class="new-card-actions">
-        <button class="btn-cancelar" onclick="cancelNewCard()">Cancelar</button>
-        <button class="btn-enviar" id="new-btn-${col}" onclick="submitNewCard('${col}')">Enviar</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function addCardBtnHTML(col,label){
-  return`<button class="add-card-btn" onclick="openNewCard('${col}')">+ ${label||'Adicionar card'}</button>`;
-}
-
-function hiddenBox(n,type){
-  return`<div class="hidden-box">${type==='mood'?'💬':'📋'} ${n} card${n>1?'s':''} oculto${n>1?'s':''}</div>`;
-}
+function cardHTML(c,colId){const isLiked=liked.has(c.id);return'<div class="card"><span>'+esc(c.texto)+'</span><div class="card-footer"><span class="card-anon">anonimo</span><div class="card-actions"><button class="like-btn'+(isLiked?' liked':'')+'" onclick="likeCard(\''+c.id+'\','+c.likes+','+isLiked+',\''+colId+'\')">+1'+(c.likes>0?' · '+c.likes:'')+'</button><button class="del-btn" onclick="deleteCard(\''+c.id+'\',\''+colId+'\')" title="Deletar">&#10005;</button></div></div></div>';}
+function newCardHTML(col){return'<div class="new-card"><textarea id="new-inp-'+col+'" placeholder="Escreva seu card..." rows="3"></textarea><div class="new-card-footer"><span class="new-card-hint">anonimo · Ctrl+Enter envia</span><div class="new-card-actions"><button class="btn-cancelar" onclick="cancelNewCard()">Cancelar</button><button class="btn-enviar" id="new-btn-'+col+'" onclick="submitNewCard(\''+col+'\')">Enviar</button></div></div></div>';}
+function addCardBtnHTML(col,label){return'<button class="add-card-btn" onclick="openNewCard(\''+col+'\')">+ '+(label||'Adicionar card')+'</button>';}
+function hiddenBox(n,type){return'<div class="hidden-box">'+(type==='mood'?'&#128172;':'&#128203;')+' '+n+' card'+(n>1?'s':'')+' oculto'+(n>1?'s':'')+'</div>';}
 
 function renderMoodCol(col){
-  const cs=cards['mood'];
-  const meuVoto=getMeuVotoAtual();
-  const media=calcMedia();
-  const contagemPorHumor=[0,0,0,0,0];
-  humorVotos.forEach(v=>{if(v.humor>=0&&v.humor<=4)contagemPorHumor[v.humor]++;});
-  const moodBtns=MOODS.map((m,i)=>{
-    const count=contagemPorHumor[i];
-    return`<div class="mood-opt${meuVoto===i?' selected':''}" onclick="votarHumor(${i})">
-      ${count>0?`<span class="mood-badge">${count}</span>`:''}
-      <span class="mood-emoji">${m.e}</span>
-      <span class="mood-label">${m.l}</span>
-    </div>`;
-  }).join('');
-  const statsHTML=humorVotos.length>0
-    ?`<div class="mood-stats">
-        <div class="mood-media">${MOODS[Math.round(media)].e} Média: ${MOODS[Math.round(media)].l} · ${humorVotos.length} voto${humorVotos.length>1?'s':''}</div>
-        <div class="mood-votos">${humorVotos.map(v=>`<span class="mood-voto-chip">${MOODS[v.humor].e}</span>`).join('')}</div>
-      </div>`
-    :`<div class="mood-hint">ninguém votou ainda</div>`;
+  const cs=cards['mood'],meuVoto=getMeuVotoAtual(),media=calcMedia(),cont=[0,0,0,0,0];
+  humorVotos.forEach(v=>{if(v.humor>=0&&v.humor<=4)cont[v.humor]++;});
+  const moodBtns=MOODS.map((m,i)=>'<div class="mood-opt'+(meuVoto===i?' selected':'')+'" onclick="votarHumor('+i+')">'+(cont[i]>0?'<span class="mood-badge">'+cont[i]+'</span>':'')+'<span class="mood-emoji">'+m.e+'</span><span class="mood-label">'+m.l+'</span></div>').join('');
+  const statsHTML=humorVotos.length>0?'<div class="mood-stats"><div class="mood-media">'+MOODS[Math.round(media)].e+' Media: '+MOODS[Math.round(media)].l+' · '+humorVotos.length+' voto'+(humorVotos.length>1?'s':'')+'</div><div class="mood-votos">'+humorVotos.map(v=>'<span class="mood-voto-chip">'+MOODS[v.humor].e+'</span>').join('')+'</div></div>':'<div class="mood-hint">ninguem votou ainda</div>';
   const cardsHTML=revealed?cs.map(c=>cardHTML(c,'mood')).join(''):(cs.length>0?hiddenBox(cs.length,'mood'):'');
-  const addArea=openCol==='mood'?newCardHTML('mood'):addCardBtnHTML('mood','Adicionar comentário');
-  return`
-    <div class="col-header">
-      <span class="col-icon">${col.icon}</span>
-      <span class="col-title">${col.title}</span>
-      <span class="col-count">${humorVotos.length}</span>
-    </div>
-    <div class="mood-grid">${moodBtns}</div>
-    ${statsHTML}
-    <div class="cards-area">${cardsHTML}</div>
-    ${addArea}`;
+  const addArea=openCol==='mood'?newCardHTML('mood'):addCardBtnHTML('mood','Adicionar comentario');
+  return'<div class="col-header"><span class="col-icon">'+col.icon+'</span><span class="col-title">'+col.title+'</span><span class="col-count">'+humorVotos.length+'</span></div><div class="mood-grid">'+moodBtns+'</div>'+statsHTML+'<div class="cards-area">'+cardsHTML+'</div>'+addArea;
 }
-
 function renderCardsCol(col){
   const cs=cards[col.id];
   const cardsHTML=revealed?cs.map(c=>cardHTML(c,col.id)).join(''):(cs.length>0?hiddenBox(cs.length,'cards'):'');
   const addArea=openCol===col.id?newCardHTML(col.id):addCardBtnHTML(col.id,'Adicionar card');
-  return`
-    <div class="col-header">
-      <span class="col-icon">${col.icon}</span>
-      <span class="col-title">${col.title}</span>
-      <span class="col-count">${cs.length}</span>
-    </div>
-    <div class="cards-area">${cardsHTML}</div>
-    ${addArea}`;
+  return'<div class="col-header"><span class="col-icon">'+col.icon+'</span><span class="col-title">'+col.title+'</span><span class="col-count">'+cs.length+'</span></div><div class="cards-area">'+cardsHTML+'</div>'+addArea;
 }
-
 function render(){
-  const board=document.getElementById('board');
-  if(!board)return;
-  board.innerHTML=COLS.map(col=>`<div class="col ${col.cls}">${col.type==='mood'?renderMoodCol(col):renderCardsCol(col)}</div>`).join('');
-  const btn=document.getElementById('reveal-btn');
-  if(btn)btn.textContent=revealed?'🙈 Ocultar cards':'👁 Revelar cards';
+  const board=document.getElementById('board');if(!board)return;
+  board.innerHTML=COLS.map(col=>'<div class="col '+col.cls+'">'+(col.type==='mood'?renderMoodCol(col):renderCardsCol(col))+'</div>').join('');
+  const btn=document.getElementById('reveal-btn');if(btn)btn.textContent=revealed?'&#128584; Ocultar cards':'&#128065; Revelar cards';
   renderActionPanel();
 }
-
 function renderActionPanel(){
-  const body=document.getElementById('action-body');
-  const count=document.getElementById('action-count');
-  if(!body)return;
-  const cs=cards['action']||[];
-  if(count)count.textContent=cs.length;
+  const body=document.getElementById('action-body'),count=document.getElementById('action-count');if(!body)return;
+  const cs=cards['action']||[];if(count)count.textContent=cs.length;
   const cardsHTML=revealed?cs.map(c=>cardHTML(c,'action')).join(''):(cs.length>0?hiddenBox(cs.length,'cards'):'');
-  const addArea=openCol==='action'?newCardHTML('action'):addCardBtnHTML('action','Adicionar ação');
+  const addArea=openCol==='action'?newCardHTML('action'):addCardBtnHTML('action','Adicionar acao');
   body.innerHTML=cardsHTML+addArea;
   body.className='action-panel-body'+(actionPanelOpen?'':' collapsed');
 }
-
 function exportBoard(){
-  const media=calcMedia();
-  const mediaIdx=media!==null?Math.round(media):null;
-  let out='RETROSPECTIVA — TIME DE PAGAMENTOS\n';
-  if(cycle)out+=cycle+'\n';
-  out+='='.repeat(38)+'\n\n';
-  const allCols=[...COLS,{id:'action',icon:'🚀',title:'Ação da retro'}];
-  allCols.forEach(col=>{
-    out+=col.icon+' '+col.title.toUpperCase()+'\n'+'-'.repeat(30)+'\n';
-    if(col.id==='mood'&&humorVotos.length>0){
-      out+='Votos: '+humorVotos.map(v=>MOODS[v.humor].e+' '+MOODS[v.humor].l).join(', ')+'\n';
-      if(mediaIdx!==null)out+='Média: '+MOODS[mediaIdx].e+' '+MOODS[mediaIdx].l+'\n';
-    }
-    (cards[col.id]||[]).forEach((c,i)=>out+=(i+1)+'. '+c.texto+(c.likes>0?' ('+c.likes+' votos)':'')+'\n');
-    out+='\n';
+  const media=calcMedia(),mediaIdx=media!==null?Math.round(media):null;
+  let out='RETROSPECTIVA - TIME DE PAGAMENTOS\n';if(cycle)out+=cycle+'\n';out+='='.repeat(38)+'\n\n';
+  [...COLS,{id:'action',icon:'',title:'Acao da retro'}].forEach(col=>{
+    out+=col.title.toUpperCase()+'\n'+'-'.repeat(30)+'\n';
+    if(col.id==='mood'&&humorVotos.length>0){out+='Votos: '+humorVotos.map(v=>MOODS[v.humor].l).join(', ')+'\n';if(mediaIdx!==null)out+='Media: '+MOODS[mediaIdx].l+'\n';}
+    (cards[col.id]||[]).forEach((c,i)=>out+=(i+1)+'. '+c.texto+(c.likes>0?' ('+c.likes+' votos)':'')+'\n');out+='\n';
   });
-  const a=document.createElement('a');
-  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(out);
-  a.download='retro-pagamentos.txt';a.click();
+  const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(out);a.download='retro-pagamentos.txt';a.click();
 }
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&openCol)submitNewCard(openCol);if(e.key==='Escape'&&openCol)cancelNewCard();});
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&openCol)submitNewCard(openCol);
-  if(e.key==='Escape'&&openCol)cancelNewCard();
-});
-
-// ── Realtime ───────────────────────────────────────────────────────────────
 function setupRealtime(){
-  db.channel('retro-v10-'+Date.now())
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'cards'},payload=>{
-      try{const c=payload.new;if(!c||!c.coluna||!COL_IDS.includes(c.coluna))return;if(cards[c.coluna].some(x=>x.id===c.id))return;cards[c.coluna].push(c);render();}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'cards'},payload=>{
-      try{const c=payload.new;if(!c||!c.coluna||!COL_IDS.includes(c.coluna))return;cards[c.coluna]=cards[c.coluna].map(x=>x.id===c.id?c:x);render();}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'DELETE',schema:'public',table:'cards'},payload=>{
-      try{const id=payload.old?.id;if(!id)return;COL_IDS.forEach(col=>{cards[col]=cards[col].filter(x=>x.id!==id);});render();}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'humor_votos'},payload=>{
-      try{const v=payload.new;if(!v||v.sessao_id!==SESSAO_ID)return;if(!humorVotos.some(x=>x.id===v.id))humorVotos.push(v);render();}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'humor_votos'},payload=>{
-      try{const v=payload.new;if(!v||v.sessao_id!==SESSAO_ID)return;humorVotos=humorVotos.map(x=>x.id===v.id?v:x);render();}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'DELETE',schema:'public',table:'humor_votos'},payload=>{
-      try{const id=payload.old?.id;if(!id)return;humorVotos=humorVotos.filter(x=>x.id!==id);render();}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessao'},payload=>{
-      try{const s=payload.new;if(!s||s.id!==SESSAO_ID)return;if(s.cycle!==undefined){cycle=s.cycle||'';renderCycle();}}catch(e){console.error(e);}
-    })
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'eventos'},payload=>{
-      try{
-        const tipo=payload.new?.tipo;
-        if(tipo==='limpar_tudo')aplicarLimpeza();
-        else if(tipo==='revelar'){revealed=true;render();updateSubtitle();}
-        else if(tipo==='ocultar'){revealed=false;render();updateSubtitle();}
-      }catch(e){console.error(e);}
-    })
-    .subscribe(status=>{
-      setStatus(status==='SUBSCRIBED');
-      if(status==='CLOSED'||status==='CHANNEL_ERROR')setTimeout(setupRealtime,3000);
-    });
+  db.channel('retro-v12-'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'cards'},p=>{try{const c=p.new;if(!c||!c.coluna||!COL_IDS.includes(c.coluna))return;if(cards[c.coluna].some(x=>x.id===c.id))return;cards[c.coluna].push(c);render();}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'cards'},p=>{try{const c=p.new;if(!c||!c.coluna||!COL_IDS.includes(c.coluna))return;cards[c.coluna]=cards[c.coluna].map(x=>x.id===c.id?c:x);render();}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'cards'},p=>{try{const id=p.old?.id;if(!id)return;COL_IDS.forEach(col=>{cards[col]=cards[col].filter(x=>x.id!==id);});render();}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'humor_votos'},p=>{try{const v=p.new;if(!v||v.sessao_id!==SESSAO_ID)return;if(!humorVotos.some(x=>x.id===v.id))humorVotos.push(v);render();}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'humor_votos'},p=>{try{const v=p.new;if(!v||v.sessao_id!==SESSAO_ID)return;humorVotos=humorVotos.map(x=>x.id===v.id?v:x);render();}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'humor_votos'},p=>{try{const id=p.old?.id;if(!id)return;humorVotos=humorVotos.filter(x=>x.id!==id);render();}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sessao'},p=>{try{const s=p.new;if(!s||s.id!==SESSAO_ID)return;if(s.cycle!==undefined){cycle=s.cycle||'';renderCycle();}}catch(e){console.error(e);}})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'eventos'},p=>{try{const t=p.new?.tipo;if(t==='limpar_tudo')aplicarLimpeza();else if(t==='revelar'){revealed=true;render();updateSubtitle();}else if(t==='ocultar'){revealed=false;render();updateSubtitle();}}catch(e){console.error(e);}})
+    .subscribe(status=>{setStatus(status==='SUBSCRIBED');if(status==='CLOSED'||status==='CHANNEL_ERROR')setTimeout(setupRealtime,3000);});
 }
-
-render();
-renderCycle();
-renderActionPanel();
-loadCards();
-loadSessao();
-loadHumorVotos();
-setupRealtime();
+render();renderCycle();renderActionPanel();loadCards();loadSessao();loadHumorVotos();setupRealtime();
 </script>
 </body>
 </html>
